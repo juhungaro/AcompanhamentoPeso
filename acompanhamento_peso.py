@@ -109,12 +109,37 @@ try:
         else:
             st.error("IMC indica obesidade (acima de 30).")
 
-        if razao_cq_atual > 0.90 and sexo == "Masculino":
-            st.error("A relação cintura-quadril está acima do recomendável para homens (>0,90).")
-        elif razao_cq_atual > 0.85 and sexo == "Feminino":
-            st.error("A relação cintura-quadril está acima do recomendável para mulheres (>0,85).")
-        else:
-            st.success("A relação cintura-quadril está dentro do padrão saudável.")
+        # Faixas da RCQ de acordo com a OMS
+        if sexo == "Masculino":
+            if razao_cq_atual <= 0.90:
+                st.success("A relação cintura-quadril está dentro do padrão saudável (Baixo Risco).")
+            elif 0.91 <= razao_cq_atual < 1.00:
+                st.warning(
+                    "A relação cintura-quadril indica Moderado Risco de problemas de saúde. "
+                    "Considere monitorar com atenção."
+                )
+            else:  # razao_cq_atual >= 1.00
+                st.error(
+                    "A relação cintura-quadril está acima do recomendável (Alto Risco). "
+                    "Valores acima desses limites indicam risco aumentado de desenvolver problemas de saúde relacionados "
+                    "à obesidade, como doenças do coração, hipertensão arterial e diabetes tipo 2."
+                )
+
+        elif sexo == "Feminino":
+            if razao_cq_atual <= 0.85:
+                st.success("A relação cintura-quadril está dentro do padrão saudável (Baixo Risco).")
+            elif 0.86 <= razao_cq_atual < 0.95:  # Mulheres têm faixas menores
+                st.warning(
+                    "A relação cintura-quadril indica Moderado Risco de problemas de saúde. "
+                    "Considere monitorar com atenção."
+                )
+            else:  # razao_cq_atual >= 0.95
+                st.error(
+                    "A relação cintura-quadril está acima do recomendável (Alto Risco). "
+                    "Valores acima desses limites indicam risco aumentado de desenvolver problemas de saúde relacionados "
+                    "à obesidade, como doenças do coração, hipertensão arterial e diabetes tipo 2."
+                )
 
 except FileNotFoundError:
     st.warning("Nenhum dado encontrado. Por favor, insira os dados de um aluno para começar.")
+

@@ -61,9 +61,9 @@ try:
     dados = pd.read_csv("dados_alunos.csv")
 
     # Garantir que as colunas estão no formato correto
-    dados["Data"] = pd.to_datetime(dados["Data"], errors="coerce")  # Converter `Data` para datetime
-    dados["Peso"] = pd.to_numeric(dados["Peso"], errors="coerce")   # Garantir que `Peso` é numérico
-    dados.dropna(subset=["Data", "Peso"], inplace=True)  # Remover linhas com dados inválidos
+    dados["Data"] = pd.to_datetime(dados["Data"], errors="coerce")
+    dados["Peso"] = pd.to_numeric(dados["Peso"], errors="coerce")
+    dados.dropna(subset=["Data", "Peso"], inplace=True)
 
     # Seleção de aluno para análise
     alunos = dados["Nome"].unique()
@@ -95,18 +95,25 @@ try:
 
             # Plotar o progresso do peso
             ax.plot(dados_aluno["Data"], dados_aluno["Peso"], marker="o", label="Peso (kg)", color="blue")
+            
+            # Adicionar valores nos pontos do gráfico
+            for x, y in zip(dados_aluno["Data"], dados_aluno["Peso"]):
+                ax.annotate(f'{y:.1f}', (x, y), textcoords="offset points", xytext=(0,10), ha='center')
+            
             ax.set_title("Progresso do Peso com Faixa Ideal")
             ax.set_xlabel("Data")
             ax.set_ylabel("Peso (kg)")
             ax.legend()
+            plt.xticks(rotation=45)
+            plt.tight_layout()
             st.pyplot(fig)
 
-            # Plotar gráfico de medidas (cintura e quadril) com faixas ideais para cintura
+            # Plotar gráfico de medidas
             fig, ax = plt.subplots()
             if sexo == "Masculino":
                 cintura_max = 94
                 cintura_alerta = 102
-            elif sexo == "Feminino":
+            else:
                 cintura_max = 80
                 cintura_alerta = 88
 
@@ -122,19 +129,27 @@ try:
             ax.set_xlabel("Data")
             ax.set_ylabel("Medidas (cm)")
             ax.legend()
+            plt.xticks(rotation=45)
+            plt.tight_layout()
             st.pyplot(fig)
 
             # Feedback quanto aos parâmetros
             st.subheader("Feedback sobre a saúde")
             imc_atual = dados_aluno["IMC"].iloc[-1]
+            
+            # Mensagem do IMC corrigida
             if imc_atual < 18.5:
-                st.warning(f"Seu IMC atual ({imc_atual}) indica magreza (abaixo de 18,5).")
-            elif 18.5 <= imc_atual < 24.9:
-                st.success(f"Seu IMC atual ({imc_atual}) está dentro da faixa saudável (18,5 a 24,9).")
-            elif 25 <= imc_atual < 29.9:
-                st.warning(f"Seu IMC atual ({imc_atual}) indica sobrepeso (25 a 29,9).")
+                st.warning(f"IMC atual: {imc_atual:.1f} - Classificação: Abaixo do peso")
+            elif 18.5 <= imc_atual < 25:
+                st.success(f"IMC atual: {imc_atual:.1f} - Classificação: Peso normal")
+            elif 25 <= imc_atual < 30:
+                st.warning(f"IMC atual: {imc_atual:.1f} - Classificação: Sobrepeso")
+            elif 30 <= imc_atual < 35:
+                st.error(f"IMC atual: {imc_atual:.1f} - Classificação: Obesidade grau I")
+            elif 35 <= imc_atual < 40:
+                st.error(f"IMC atual: {imc_atual:.1f} - Classificação: Obesidade grau II")
             else:
-                st.error(f"Seu IMC atual ({imc_atual}) indica obesidade (acima de 30).")
+                st.error(f"IMC atual: {imc_atual:.1f} - Classificação: Obesidade grau III")
         else:
             st.warning("Não há dados suficientes para exibir os gráficos.")
 except FileNotFoundError:

@@ -24,7 +24,7 @@ data = st.sidebar.date_input("Data da medição", value=dt.date.today())
 
 # Botão para salvar os dados
 if st.sidebar.button("Salvar Dados"):
-    if nome and altura > 0 and peso > 0:
+    if nome and altura > 0 and peso > 0:  # Garantir valores válidos
         # Tentar carregar a base de dados existente
         try:
             dados = pd.read_csv("dados_alunos.csv")
@@ -92,60 +92,49 @@ try:
 
         # --- Gráfico de Medidas ---
         st.subheader("Progresso das Medidas")
-        fig, ax = plt.subplots(figsize=(10, 6))
+        if not dados_aluno["Cintura"].isnull().all() and not dados_aluno["Quadril"].isnull().all():
+            fig, ax = plt.subplots(figsize=(10, 6))
 
-        # Plotar progresso de cintura e quadril
-        ax.plot(dados_aluno["Data"], dados_aluno["Cintura"], marker="o", label="Cintura (cm)", color="orange")
-        ax.plot(dados_aluno["Data"], dados_aluno["Quadril"], marker="o", label="Quadril (cm)", color="purple")
+            # Plotar progresso de cintura e quadril
+            ax.plot(dados_aluno["Data"], dados_aluno["Cintura"], marker="o", label="Cintura (cm)", color="orange")
+            ax.plot(dados_aluno["Data"], dados_aluno["Quadril"], marker="o", label="Quadril (cm)", color="purple")
 
-        # Anotações
-        for x, y in zip(dados_aluno["Data"], dados_aluno["Cintura"]):
-            ax.annotate(f"{y:.1f}", (x, y + 1.5), textcoords="offset points", ha="center")
-        for x, y in zip(dados_aluno["Data"], dados_aluno["Quadril"]):
-            ax.annotate(f"{y:.1f}", (x, y - 1.5), textcoords="offset points", ha="center")
+            # Anotações
+            for x, y in zip(dados_aluno["Data"], dados_aluno["Cintura"]):
+                ax.annotate(f"{y:.1f}", (x, y + 1.5), textcoords="offset points", ha="center")
+            for x, y in zip(dados_aluno["Data"], dados_aluno["Quadril"]):
+                ax.annotate(f"{y:.1f}", (x, y - 1.5), textcoords="offset points", ha="center")
 
-        ax.set_title("Progresso de Cintura e Quadril")
-        ax.set_xlabel("Data")
-        ax.set_ylabel("Medidas (cm)")
-        ax.grid(alpha=0.4, linestyle="--")
-        ax.legend(["Cintura (cm)", "Quadril (cm)"], loc="upper right")
-        st.pyplot(fig)
+            ax.set_title("Progresso de Cintura e Quadril")
+            ax.set_xlabel("Data")
+            ax.set_ylabel("Medidas (cm)")
+            ax.grid(alpha=0.4, linestyle="--")
+            ax.legend(["Cintura (cm)", "Quadril (cm)"], loc="upper right")
+            st.pyplot(fig)
+        else:
+            st.warning("Não há dados suficientes para as medidas de cintura e quadril.")
 
         # --- Feedback do IMC ---
         st.subheader("Classificação do IMC")
-        imc_atual = dados_aluno["IMC"].iloc[-1]
-        st.write(f"**IMC Atual:** {imc_atual:.1f}")
-        if imc_atual < 18.5:
-            st.warning("Classificação: Magreza (IMC < 18.5). Consulte um especialista.")
-        elif 18.5 <= imc_atual < 24.9:
-            st.success("Classificação: Peso normal (IMC 18.5 - 24.9). Continue assim!")
-        elif 25 <= imc_atual < 29.9:
-            st.warning("Classificação: Sobrepeso (IMC 25 - 29.9). Cuide-se com hábitos saudáveis.")
-        elif 30 <= imc_atual < 34.9:
-            st.error("Classificação: Obesidade Grau I (IMC 30 - 34.9). Acompanhamento recomendado.")
-        elif 35 <= imc_atual < 39.9:
-            st.error("Classificação: Obesidade Grau II (IMC 35 - 39.9). Procure ajuda especializada.")
-        else:
-            st.error("Classificação: Obesidade Grau III (IMC ≥ 40). Intervenção necessária.")
-
-        # --- Feedback do RCQ ---
-        st.subheader("Classificação do RCQ")
-        razao_cq_atual = dados_aluno["C/Q"].iloc[-1]
-        st.write(f"**RCQ Atual:** {razao_cq_atual}")
-        if sexo == "Masculino":
-            if razao_cq_atual <= 0.90:
-                st.success("RCQ dentro da faixa saudável (RCQ ≤ 0.90).")
-            elif 0.91 <= razao_cq_atual < 1.00:
-                st.warning("RCQ moderado (RCQ 0.91 - 0.99). Fique atento.")
+        altura_atual = dados_aluno["Altura"].iloc[-1]
+        peso_atual = dados_aluno["Peso"].iloc[-1]
+        if altura_atual > 0 and peso_atual > 0:
+            imc_atual = round(peso_atual / (altura_atual ** 2), 2)
+            st.write(f"**IMC Atual:** {imc_atual:.1f}")
+            if imc_atual < 18.5:
+                st.warning("Classificação: Magreza (IMC < 18.5). Consulte um especialista.")
+            elif 18.5 <= imc_atual < 24.9:
+                st.success("Classificação: Peso normal (IMC 18.5 - 24.9). Continue assim!")
+            elif 25 <= imc_atual < 29.9:
+                st.warning("Classificação: Sobrepeso (IMC 25 - 29.9). Cuide-se com hábitos saudáveis.")
+            elif 30 <= imc_atual < 34.9:
+                st.error("Classificação: Obesidade Grau I (IMC 30 - 34.9). Acompanhamento recomendado.")
+            elif 35 <= imc_atual < 39.9:
+                st.error("Classificação: Obesidade Grau II (IMC 35 - 39.9). Procure ajuda especializada.")
             else:
-                st.error("RCQ elevado (RCQ ≥ 1.00). Risco à saúde.")
+                st.error("Classificação: Obesidade Grau III (IMC ≥ 40). Intervenção necessária.")
         else:
-            if razao_cq_atual <= 0.85:
-                st.success("RCQ dentro da faixa saudável (RCQ ≤ 0.85).")
-            elif 0.86 <= razao_cq_atual < 0.95:
-                st.warning("RCQ moderado (RCQ 0.86 - 0.94). Fique atento.")
-            else:
-                st.error("RCQ elevado (RCQ ≥ 0.95). Risco à saúde.")
+            st.error("Dados insuficientes para calcular o IMC. Verifique a altura e o peso.")
 
 except FileNotFoundError:
     st.warning("Nenhum dado encontrado. Por favor, insira os dados de um aluno para começar!")

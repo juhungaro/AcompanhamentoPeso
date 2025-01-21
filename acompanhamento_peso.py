@@ -147,43 +147,16 @@ try:
             tab1, tab2 = st.tabs(["Progresso do Peso", "Medidas Corporais"])
             
             with tab1:
-                fig, ax = plt.subplots(figsize=(10, 6))
-                ax.plot(dados_aluno["Data"], dados_aluno["Peso"], 
-                       marker="o", linewidth=2, color='#2E86C1')
+                # Remover dados nulos
+                dados_peso = dados_aluno.dropna(subset=['Peso'])
                 
-                # Adicionar valores nos pontos
-                for x, y in zip(dados_aluno["Data"], dados_aluno["Peso"]):
-                    ax.annotate(f'{y:.1f}', 
-                              (x, y), 
-                              textcoords="offset points", 
-                              xytext=(0,10), 
-                              ha='center',
-                              fontsize=9)
-                
-                ax.set_title("Progresso do Peso", pad=20, fontsize=14)
-                ax.set_xlabel("Data", fontsize=12)
-                ax.set_ylabel("Peso (kg)", fontsize=12)
-                ax.grid(True, alpha=0.3)
-                plt.xticks(rotation=45)
-                plt.tight_layout()
-                
-                st.pyplot(fig)
-                plt.close()
-            
-            with tab2:
-                if not dados_aluno["Cintura"].isnull().all() and not dados_aluno["Quadril"].isnull().all():
+                if not dados_peso.empty:
                     fig, ax = plt.subplots(figsize=(10, 6))
-                    
-                    # Plotar linha da cintura
-                    ax.plot(dados_aluno["Data"], dados_aluno["Cintura"], 
-                           marker="o", label="Cintura", color='#E74C3C')
-                    
-                    # Plotar linha do quadril
-                    ax.plot(dados_aluno["Data"], dados_aluno["Quadril"], 
-                           marker="o", label="Quadril", color='#8E44AD')
+                    ax.plot(dados_peso["Data"], dados_peso["Peso"], 
+                           marker="o", linewidth=2, color='#2E86C1')
                     
                     # Adicionar valores nos pontos
-                    for x, y in zip(dados_aluno["Data"], dados_aluno["Cintura"]):
+                    for x, y in zip(dados_peso["Data"], dados_peso["Peso"]):
                         ax.annotate(f'{y:.1f}', 
                                   (x, y), 
                                   textcoords="offset points", 
@@ -191,7 +164,46 @@ try:
                                   ha='center',
                                   fontsize=9)
                     
-                    for x, y in zip(dados_aluno["Data"], dados_aluno["Quadril"]):
+                    ax.set_title("Progresso do Peso", pad=20, fontsize=14)
+                    ax.set_xlabel("Data", fontsize=12)
+                    ax.set_ylabel("Peso (kg)", fontsize=12)
+                    ax.grid(True, alpha=0.3)
+                    
+                    # Ajustar datas no eixo x
+                    dates = dados_peso["Data"]
+                    plt.xticks(dates, dates.dt.strftime('%d/%m/%Y'), rotation=45)
+                    plt.tight_layout()
+                    
+                    st.pyplot(fig)
+                    plt.close()
+                else:
+                    st.warning("Não há dados de peso para exibir no gráfico")
+            
+            with tab2:
+                # Remover dados nulos de cintura e quadril
+                dados_medidas = dados_aluno.dropna(subset=['Cintura', 'Quadril'])
+                
+                if not dados_medidas.empty:
+                    fig, ax = plt.subplots(figsize=(10, 6))
+                    
+                    # Plotar linha da cintura
+                    ax.plot(dados_medidas["Data"], dados_medidas["Cintura"], 
+                           marker="o", label="Cintura", color='#E74C3C')
+                    
+                    # Plotar linha do quadril
+                    ax.plot(dados_medidas["Data"], dados_medidas["Quadril"], 
+                           marker="o", label="Quadril", color='#8E44AD')
+                    
+                    # Adicionar valores nos pontos
+                    for x, y in zip(dados_medidas["Data"], dados_medidas["Cintura"]):
+                        ax.annotate(f'{y:.1f}', 
+                                  (x, y), 
+                                  textcoords="offset points", 
+                                  xytext=(0,10), 
+                                  ha='center',
+                                  fontsize=9)
+                    
+                    for x, y in zip(dados_medidas["Data"], dados_medidas["Quadril"]):
                         ax.annotate(f'{y:.1f}', 
                                   (x, y), 
                                   textcoords="offset points", 
@@ -204,13 +216,16 @@ try:
                     ax.set_ylabel("Centímetros", fontsize=12)
                     ax.legend()
                     ax.grid(True, alpha=0.3)
-                    plt.xticks(rotation=45)
+                    
+                    # Ajustar datas no eixo x
+                    dates = dados_medidas["Data"]
+                    plt.xticks(dates, dates.dt.strftime('%d/%m/%Y'), rotation=45)
                     plt.tight_layout()
                     
                     st.pyplot(fig)
                     plt.close()
                 else:
-                    st.warning("Dados de medidas insuficientes para gerar o gráfico")
+                    st.warning("Não há dados de medidas suficientes para gerar o gráfico")
             
             # Tabela de dados
             st.subheader("Histórico de Medições")

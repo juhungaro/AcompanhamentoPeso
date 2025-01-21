@@ -90,9 +90,9 @@ try:
                 peso_minimo = round(18.5 * (altura_atual ** 2), 2)
                 peso_maximo = round(24.9 * (altura_atual ** 2), 2)
 
-                # Configurar limites do eixo Y incluindo a faixa ideal
-                peso_min = min(dados_aluno["Peso"].min() - 2, peso_minimo - 2)
-                peso_max = max(dados_aluno["Peso"].max() + 2, peso_maximo + 2)
+                # Configurar limites do eixo Y incluindo a faixa ideal e os pesos
+                peso_min = min(dados_aluno["Peso"].min(), peso_minimo) - 2
+                peso_max = max(dados_aluno["Peso"].max(), peso_maximo) + 2
                 ax.set_ylim(peso_min, peso_max)
 
                 # Adicionar faixa de peso saudável
@@ -119,7 +119,7 @@ try:
 
             # Plotar gráfico de medidas
             fig, ax = plt.subplots(figsize=(12, 6))
-            if sexo == "Masculino":
+            if dados_aluno["Sexo"].iloc[-1] == "Masculino":
                 cintura_max = 94
                 cintura_alerta = 102
             else:
@@ -160,21 +160,41 @@ try:
 
             # Feedback quanto aos parâmetros
             st.subheader("Feedback sobre a saúde")
+
+            # Feedback do IMC
             imc_atual = dados_aluno["IMC"].iloc[-1]
-            
-            # Mensagem do IMC
             if imc_atual < 18.5:
-                st.warning(f"IMC atual: {imc_atual:.1f} - Classificação: Abaixo do peso")
-            elif 18.5 <= imc_atual < 25:
+                st.warning(f"IMC atual: {imc_atual:.1f} - Classificação: Baixo peso")
+            elif 18.5 <= imc_atual < 24.9:
                 st.success(f"IMC atual: {imc_atual:.1f} - Classificação: Peso normal")
-            elif 25 <= imc_atual < 30:
+            elif 24.9 <= imc_atual < 29.9:
                 st.warning(f"IMC atual: {imc_atual:.1f} - Classificação: Sobrepeso")
-            elif 30 <= imc_atual < 35:
+            elif 29.9 <= imc_atual < 34.9:
                 st.error(f"IMC atual: {imc_atual:.1f} - Classificação: Obesidade grau I")
-            elif 35 <= imc_atual < 40:
+            elif 34.9 <= imc_atual < 39.9:
                 st.error(f"IMC atual: {imc_atual:.1f} - Classificação: Obesidade grau II")
             else:
                 st.error(f"IMC atual: {imc_atual:.1f} - Classificação: Obesidade grau III")
+
+            # Feedback da Relação Cintura-Quadril (RCQ)
+            razao_cq_atual = dados_aluno["C/Q"].iloc[-1]
+            st.write(f"\nRelação Cintura-Quadril atual: {razao_cq_atual:.2f}")
+
+            # Faixas da RCQ de acordo com a OMS
+            if dados_aluno["Sexo"].iloc[-1] == "Masculino":
+                if razao_cq_atual <= 0.90:
+                    st.success("A relação cintura-quadril está dentro do padrão saudável (Baixo Risco).")
+                elif 0.91 <= razao_cq_atual < 1.00:
+                    st.warning("Relação cintura-quadril indica Moderado Risco.")
+                else:
+                    st.error("Relação cintura-quadril indica Alto Risco.")
+            else:  # Feminino
+                if razao_cq_atual <= 0.85:
+                    st.success("A relação cintura-quadril está dentro do padrão saudável (Baixo Risco).")
+                elif 0.86 <= razao_cq_atual < 0.95:
+                    st.warning("Relação cintura-quadril indica Moderado Risco.")
+                else:
+                    st.error("Relação cintura-quadril indica Alto Risco.")
         else:
             st.warning("Não há dados suficientes para exibir os gráficos.")
 except FileNotFoundError:

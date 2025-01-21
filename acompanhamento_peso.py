@@ -32,7 +32,11 @@ if st.sidebar.button("Salvar Dados"):
             dados = pd.DataFrame(columns=["Nome", "Sexo", "Data", "Altura", "Peso", "Cintura", "Quadril", "IMC", "C/Q"])
 
         # Cálculos
-        imc = peso / (altura ** 2) if altura > 0 else 0
+        if altura > 0:
+            imc = peso / (altura ** 2)
+        else:
+            imc = None  # Valor inválido, usado como feedback mais tarde
+
         razao_cq = cintura / quadril if quadril > 0 else 0
 
         # Novo registro
@@ -44,7 +48,7 @@ if st.sidebar.button("Salvar Dados"):
             "Peso": [peso],
             "Cintura": [cintura],
             "Quadril": [quadril],
-            "IMC": [imc],
+            "IMC": [imc if imc else -1],  # Se IMC for None, salva -1 para indicar inválido
             "C/Q": [razao_cq]
         })
 
@@ -73,79 +77,22 @@ try:
         st.subheader(f"Dados de {aluno_selecionado}")
         st.dataframe(dados_aluno)
 
-        # Exibir gráficos de progresso
-        st.subheader("Progresso ao longo do tempo")
+        # Cálculo da altura mais recente
+        altura_atual = dados_aluno["Altura"].iloc[-1]
 
-        # Plotar gráfico de peso com faixa saudável de peso
-        fig, ax = plt.subplots()
-        # Adicionar faixa de peso ideal (área sombreada)
-        altura_atual = dados_aluno["Altura"].iloc[-1]  # Garantindo altura do último registro
-        peso_minimo = 18.5 * (altura_atual ** 2)
-        peso_maximo = 24.9 * (altura_atual ** 2)
-        ax.axhspan(peso_minimo, peso_maximo, color="green", alpha=0.2, label="Faixa de Peso Ideal")
-
-        # Plotar o progresso do peso
-        ax.plot(dados_aluno["Data"], dados_aluno["Peso"], marker="o", label="Peso (kg)", color="blue")
-        ax.set_title("Progresso do Peso com Faixa Ideal")
-        ax.set_xlabel("Data")
-        ax.set_ylabel("Peso (kg)")
-        ax.legend()
-        st.pyplot(fig)
-
-        # Plotar gráfico de medidas (cintura e quadril) com faixas ideais para cintura
-        fig, ax = plt.subplots()
-
-        # Faixas para a circunferência da cintura conforme o sexo
-        if sexo == "Masculino":
-            cintura_max = 94
-            cintura_alerta = 102
-        elif sexo == "Feminino":
-            cintura_max = 80
-            cintura_alerta = 88
-
-        # Adicionar as faixas de cintura ao gráfico
-        ax.axhspan(0, cintura_max, color="green", alpha=0.2, label="Faixa Saudável (Cintura)")
-        ax.axhspan(cintura_max, cintura_alerta, color="yellow", alpha=0.2, label="Risco Moderado (Cintura)")
-        ax.axhspan(cintura_alerta, max(dados_aluno["Cintura"].max() + 10, cintura_alerta + 10), color="red", alpha=0.2, label="Risco Alto (Cintura)")
-
-        # Plotar o progresso das medidas
-        ax.plot(dados_aluno["Data"], dados_aluno["Cintura"], marker="o", label="Cintura (cm)", color="orange")
-        ax.plot(dados_aluno["Data"], dados_aluno["Quadril"], marker="o", label="Quadril (cm)", color="purple")
-        ax.set_title("Progresso das Medidas com Faixas Ideais")
-        ax.set_xlabel("Data")
-        ax.set_ylabel("Medidas (cm)")
-        ax.legend()
-        st.pyplot(fig)
-
-        # Feedback quanto aos parâmetros
-        st.subheader("Feedback sobre a saúde")
+        # Feedback sobre o IMC
         imc_atual = dados_aluno["IMC"].iloc[-1]
-        razao_cq_atual = dados_aluno["C/Q"].iloc[-1]
-
-        if imc_atual < 18.5:
-            st.warning("IMC indica magreza (abaixo de 18,5)")
-        elif 18.5 <= imc_atual < 24.9:
-            st.success("IMC dentro da faixa saudável (18,5 a 24,9).")
-        elif 25 <= imc_atual < 29.9:
-            st.warning("IMC indica sobrepeso (25 a 29,9).")
+        if imc_atual and imc_atual > 0:
+            if imc_atual < 18.5:
+                st.warning("IMC indica magreza (abaixo de 18,5).")
+            elif 18.5 <= imc_atual < 24.9:
+                st.success("IMC dentro da faixa saudável (18,5 a 24,9).")
+            elif 25 <= imc_atual < 29.9:
+                st.warning("IMC indica sobrepeso (25 a 29,9).")
+            else:
+                st.error("IMC indica obesidade (acima de 30).")
         else:
-            st.error("IMC indica obesidade (acima de 30).")
-
-        # Faixas da RCQ de acordo com a OMS
-        if sexo == "Masculino":
-            if razao_cq_atual <= 0.90:
-                st.success("A relação cintura-quadril está dentro do padrão saudável (Baixo Risco).")
-            elif 0.91 <= razao_cq_atual < 1.00:
-                st.warning("Relação cintura-quadril indica Moderado Risco.")
-            else:
-                st.error("Relação cintura-quadril indica Alto Risco.")
-        elif sexo == "Feminino":
-            if razao_cq_atual <= 0.85:
-                st.success("A relação cintura-quadril está dentro do padrão saudável (Baixo Risco).")
-            elif 0.86 <= razao_cq_atual < 0.95:
-                st.warning("Relação cintura-quadril indica Moderado Risco.")
-            else:
-                st.error("Relação cintura-quadril indica Alto Risco.")
+            st.error("Não foi possível calcular o IMC. Verifique se a altura foi inserida corretamente.")
 
 except FileNotFoundError:
     st.warning("Nenhum dado encontrado. Por favor, insira os dados de um aluno para começar.")

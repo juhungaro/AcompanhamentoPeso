@@ -76,24 +76,47 @@ try:
         # Exibir gráficos de progresso
         st.subheader("Progresso ao longo do tempo")
 
-        # Plotar gráfico de peso
-        fig, ax = plt.subplots()
-        ax.plot(dados_aluno["Data"], dados_aluno["Peso"], marker="o", label="Peso (kg)")
-        ax.set_title("Progresso do Peso")
-        ax.set_xlabel("Data")
-        ax.set_ylabel("Peso (kg)")
-        ax.legend()
-        st.pyplot(fig)
+# Plotar gráfico de peso com faixa saudável de peso
+fig, ax = plt.subplots()
+# Adicionar faixa de peso ideal (área sombreada)
+peso_minimo = 18.5 * (altura ** 2)
+peso_maximo = 24.9 * (altura ** 2)
+ax.axhspan(peso_minimo, peso_maximo, color="green", alpha=0.2, label="Faixa de Peso Ideal")
 
-        # Plotar gráfico de medidas
-        fig, ax = plt.subplots()
-        ax.plot(dados_aluno["Data"], dados_aluno["Cintura"], marker="o", label="Cintura (cm)", color="orange")
-        ax.plot(dados_aluno["Data"], dados_aluno["Quadril"], marker="o", label="Quadril (cm)", color="green")
-        ax.set_title("Progresso das Medidas")
-        ax.set_xlabel("Data")
-        ax.set_ylabel("Medidas (cm)")
-        ax.legend()
-        st.pyplot(fig)
+# Plotar o progresso do peso
+ax.plot(dados_aluno["Data"], dados_aluno["Peso"], marker="o", label="Peso (kg)", color="blue")
+ax.set_title("Progresso do Peso com Faixa Ideal")
+ax.set_xlabel("Data")
+ax.set_ylabel("Peso (kg)")
+ax.legend()
+st.pyplot(fig)
+
+       # Plotar gráfico de medidas (cintura e quadril) com faixas ideais para cintura
+fig, ax = plt.subplots()
+
+# Faixas para a circunferência da cintura conforme o sexo
+if sexo == "Masculino":
+    cintura_min_ideal = 0  # Abaixo de 94 cm é saudável
+    cintura_max_ideal = 94
+    cintura_alerta = 102  # Acima de 102 cm é perigoso
+elif sexo == "Feminino":
+    cintura_min_ideal = 0  # Abaixo de 80 cm é saudável
+    cintura_max_ideal = 80
+    cintura_alerta = 88  # Acima de 88 cm é perigoso
+
+# Adicionar as faixas de cintura ao gráfico
+ax.axhspan(cintura_min_ideal, cintura_max_ideal, color="green", alpha=0.2, label="Faixa Saudável (Cintura)")
+ax.axhspan(cintura_max_ideal, cintura_alerta, color="yellow", alpha=0.2, label="Risco Moderado (Cintura)")
+ax.axhspan(cintura_alerta, max(dados_aluno["Cintura"].max() + 10, cintura_alerta + 10), color="red", alpha=0.2, label="Risco Alto (Cintura)")
+
+# Plotar o progresso das medidas
+ax.plot(dados_aluno["Data"], dados_aluno["Cintura"], marker="o", label="Cintura (cm)", color="orange")
+ax.plot(dados_aluno["Data"], dados_aluno["Quadril"], marker="o", label="Quadril (cm)", color="purple")
+ax.set_title("Progresso das Medidas com Faixas Ideais")
+ax.set_xlabel("Data")
+ax.set_ylabel("Medidas (cm)")
+ax.legend()
+st.pyplot(fig)
 
         # Feedback quanto aos parâmetros
         st.subheader("Feedback sobre a saúde")

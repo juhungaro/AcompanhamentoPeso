@@ -1,96 +1,167 @@
-# Separar o código em funções para melhor organização
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+import datetime as dt
+
+# Configurações da página
+st.set_page_config(page_title="Monitoramento Físico", layout="wide")
+
+# Funções auxiliares
 def load_data():
     try:
         return pd.read_csv("dados_alunos.csv")
     except FileNotFoundError:
         return pd.DataFrame(columns=["Nome", "Sexo", "Data", "Altura", "Peso", "Cintura", "Quadril", "IMC", "C/Q"])
 
-def save_data(dados_aluno):
-    dados_aluno.to_csv("dados_alunos.csv", index=False)
-
 def calculate_metrics(peso, altura, cintura, quadril):
     imc = round(peso / (altura ** 2), 2) if altura > 0 and peso > 0 else None
     rcq = round(cintura / quadril, 2) if quadril > 0 and cintura > 0 else None
     return imc, rcq
 
-def validate_inputs(nome, altura, peso):
-    if not nome:
-        return False, "Nome é obrigatório"
-    if altura <= 0:
-        return False, "Altura deve ser maior que zero"
-    if peso <= 0:
-        return False, "Peso deve ser maior que zero"
-    return True, ""
+def get_imc_classification(imc):
+    if imc < 18.5:
+        return "Magreza", "warning"
+    elif imc < 24.9:
+        return "Peso normal", "success"
+    elif imc < 29.9:
+        return "Sobrepeso", "warning"
+    elif imc < 34.9:
+        return "Obesidade Grau I", "error"
+    elif imc < 39.9:
+        return "Obesidade Grau II", "error"
+    else:
+        return "Obesidade Grau III", "error"
 
-def plot_weight_progress(dados_aluno):
-    fig = plt.figure(figsize=(10, 6))
-    plt.style.use('seaborn')  # Melhor estilo visual
-    
-    plt.plot(dados_aluno["Data"], dados_aluno["Peso"], 
-             marker="o", linewidth=2, markersize=8)
-    
-    # Formatação do gráfico
-    plt.title("Progresso do Peso", fontsize=14, pad=20)
-    plt.xlabel("Data", fontsize=12)
-    plt.ylabel("Peso (kg)", fontsize=12)
-    plt.grid(True, alpha=0.3)
-    
-    return fig
+# Interface principal
+st.title("Monitoramento de Peso e Medidas")
+st.markdown("### Acompanhe o progresso físico com base em dados de peso, medidas e parâmetros da OMS")
 
-@st.cache_data
-def load_cached_data():
-    return load_data()
+# Sidebar para entrada de dados
+with st.sidebar:
+    st.title("Menu")
+    st.header("Inserir dados do aluno")
+    
+    # Formulário de entrada
+    with st.form("entrada_dados"):
+        nome = st.text_input("Nome do aluno")
+        sexo = st.selectbox("Sexo", ["Masculino", "Feminino"])
+        altura = st.number_input("Altura (em metros)", format="%.2f", min_value=0.1, step=0.01)
+        peso = st.number_input("Peso atual (em kg)", format="%.1f", min_value=0.0, step=0.1)
+        cintura = st.number_input("Circunferência da Cintura (em cm)", format="%.1f", min_value=0.0, step=0.1)
+        quadril = st.number_input("Circunferência do Quadril (em cm)", format="%.1f", min_value=0.0, step=0.1)
+        data = st.date_input("Data da medição", value=dt.date.today())
+        
+        submitted = st.form_submit_button("Salvar Dados")
 
+# Processamento do formulário
+if submitted:
+    if nome and altura > 0 and peso > 0:
+        dados = load_data()
+        
+        imc, rcq = calculate_metrics(peso, altura, cintura, quadril)
+        
+        novo_dado = pd.DataFrame({
+            "Nome": [nome],
+            "Sexo": [sexo],
+            "Data": [data],
+            "Altura": [altura],
+            "Peso": [peso],
+            "Cintura": [cintura],
+            "Quadril": [quadril],
+            "IMC": [imc],
+            "C/Q": [rcq]
+        })
+        
+        dados = pd.concat([dados, novo_dado], ignore_index=True)
+        dados.to_csv("dados_alunos.csv", index=False)
+        st.sidebar.success("Dados salvos com sucesso!")
+    else:
+        st.sidebar.error("Preencha todos os campos obrigatórios!")
+
+# Visualização dos dados
 try:
-    dados = load_cached_data()
-    if dados.empty:
-        st.info("Nenhum dado encontrado. Insira os dados para começar!")
-        st.stop()
-except Exception as e:
-    st.error(f"Erro ao carregar dados: {str(e)}")
-    st.stop()
-
-def add_filters(dados):
-    col1, col2 = st.columns(2)
-    with col1:
-        data_inicio = st.date_input("Data Inicial", 
-                                   min(dados["Data"]))
-    with col2:
-        data_fim = st.date_input("Data Final", 
-                                max(dados["Data"]))
-    return data_inicio, data_fim
-
-def show_statistics(dados_aluno):
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Peso Inicial", f"{dados_aluno['Peso'].iloc[0]:.1f} kg")
-    with col2:
-        st.metric("Peso Atual", f"{dados_aluno['Peso'].iloc[-1]:.1f} kg")
-    with col3:
-        diferenca = dados_aluno['Peso'].iloc[-1] - dados_aluno['Peso'].iloc[0]
-        st.metric("Variação", f"{diferenca:.1f} kg")
-
-def get_imc_feedback(imc):
-    feedbacks = {
-        (0, 18.5): ("Magreza", "warning", "Consulte um especialista"),
-        (18.5, 24.9): ("Peso normal", "success", "Continue assim!"),
-        (25, 29.9): ("Sobrepeso", "warning", "Mantenha hábitos saudáveis"),
-        (30, 34.9): ("Obesidade Grau I", "error", "Acompanhamento recomendado"),
-        (35, 39.9): ("Obesidade Grau II", "error", "Procure ajuda especializada"),
-        (40, float('inf')): ("Obesidade Grau III", "error", "Intervenção necessária")
-    }
+    dados = load_data()
     
-    for (min_val, max_val), (status, level, message) in feedbacks.items():
-        if min_val <= imc < max_val:
-            return status, level, message
-
-def add_export_option(dados_aluno):
-    if st.button("Exportar Dados"):
-        csv = dados_aluno.to_csv(index=False)
-        st.download_button(
-            label="Download CSV",
-            data=csv,
-            file_name="dados_aluno.csv",
-            mime="text/csv"
-        )
-
+    if not dados.empty:
+        dados["Data"] = pd.to_datetime(dados["Data"])
+        
+        # Seleção do aluno
+        alunos = dados["Nome"].unique()
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            aluno_selecionado = st.selectbox("Selecione um aluno", alunos)
+        
+        if aluno_selecionado:
+            dados_aluno = dados[dados["Nome"] == aluno_selecionado].sort_values("Data")
+            
+            # Métricas principais
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Peso Atual", f"{dados_aluno['Peso'].iloc[-1]:.1f} kg")
+            with col2:
+                st.metric("IMC Atual", f"{dados_aluno['IMC'].iloc[-1]:.1f}")
+            with col3:
+                st.metric("Cintura", f"{dados_aluno['Cintura'].iloc[-1]:.1f} cm")
+            with col4:
+                st.metric("Quadril", f"{dados_aluno['Quadril'].iloc[-1]:.1f} cm")
+            
+            # Gráficos
+            tab1, tab2 = st.tabs(["Progresso do Peso", "Medidas Corporais"])
+            
+            with tab1:
+                fig, ax = plt.subplots(figsize=(10, 6))
+                ax.plot(dados_aluno["Data"], dados_aluno["Peso"], marker="o", linewidth=2)
+                ax.set_title("Progresso do Peso")
+                ax.set_xlabel("Data")
+                ax.set_ylabel("Peso (kg)")
+                ax.grid(True, alpha=0.3)
+                
+                for x, y in zip(dados_aluno["Data"], dados_aluno["Peso"]):
+                    ax.annotate(f"{y:.1f}", (x, y), textcoords="offset points", xytext=(0,10), ha='center')
+                
+                st.pyplot(fig)
+            
+            with tab2:
+                if not dados_aluno["Cintura"].isnull().all() and not dados_aluno["Quadril"].isnull().all():
+                    fig, ax = plt.subplots(figsize=(10, 6))
+                    ax.plot(dados_aluno["Data"], dados_aluno["Cintura"], marker="o", label="Cintura")
+                    ax.plot(dados_aluno["Data"], dados_aluno["Quadril"], marker="o", label="Quadril")
+                    ax.set_title("Medidas Corporais")
+                    ax.set_xlabel("Data")
+                    ax.set_ylabel("Centímetros")
+                    ax.legend()
+                    ax.grid(True, alpha=0.3)
+                    st.pyplot(fig)
+                else:
+                    st.warning("Dados de medidas insuficientes")
+            
+            # Classificação IMC
+            st.subheader("Análise do IMC")
+            imc_atual = dados_aluno["IMC"].iloc[-1]
+            classificacao, nivel = get_imc_classification(imc_atual)
+            
+            if nivel == "success":
+                st.success(f"IMC: {imc_atual:.1f} - Classificação: {classificacao}")
+            elif nivel == "warning":
+                st.warning(f"IMC: {imc_atual:.1f} - Classificação: {classificacao}")
+            else:
+                st.error(f"IMC: {imc_atual:.1f} - Classificação: {classificacao}")
+            
+            # Tabela de dados
+            st.subheader("Histórico de Medições")
+            st.dataframe(dados_aluno.sort_values("Data", ascending=False))
+            
+            # Botão de download
+            csv = dados_aluno.to_csv(index=False)
+            st.download_button(
+                label="Download dos dados",
+                data=csv,
+                file_name=f"dados_{aluno_selecionado}.csv",
+                mime="text/csv"
+            )
+            
+    else:
+        st.info("Nenhum dado encontrado. Insira os dados de um aluno para começar!")
+        
+except Exception as e:
+    st.error(f"Ocorreu um erro ao carregar os dados: {str(e)}")

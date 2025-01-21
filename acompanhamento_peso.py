@@ -63,9 +63,6 @@ try:
 
     # Garantir conversão apropriada de colunas
     dados["Data"] = pd.to_datetime(dados["Data"], errors="coerce")
-    dados["Peso"] = pd.to_numeric(dados["Peso"], errors="coerce")
-    dados["Cintura"] = pd.to_numeric(dados["Cintura"], errors="coerce")
-    dados["Quadril"] = pd.to_numeric(dados["Quadril"], errors="coerce")
     dados.dropna(subset=["Data", "Peso", "Cintura", "Quadril"], inplace=True)
 
     # Escolher aluno
@@ -88,17 +85,23 @@ try:
         # Faixa de peso ideal
         ax.axhspan(peso_minimo, peso_maximo, color="green", alpha=0.2, label="Faixa de Peso Ideal")
 
+        # Configurar escala do eixo Y ajustada ao peso
+        peso_min = min(peso_minimo, dados_aluno["Peso"].min()) - 2
+        peso_max = max(peso_maximo, dados_aluno["Peso"].max()) + 2
+        ax.set_ylim(peso_min, peso_max)
+
         # Progresso do peso
         ax.plot(dados_aluno["Data"], dados_aluno["Peso"], marker="o", label="Peso (kg)", color="blue")
         for x, y in zip(dados_aluno["Data"], dados_aluno["Peso"]):
             ax.annotate(f"{y:.1f}", (x, y), textcoords="offset points", xytext=(0, 10), ha="center")
 
         # Personalizar gráfico
-        ax.set_title("Progresso do Peso")
+        ax.set_title("Progresso do Peso com Faixa Ideal")
         ax.set_xlabel("Data")
         ax.set_ylabel("Peso (kg)")
-        ax.legend()
+        ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1))  # Legenda fora do gráfico
         ax.grid(True, linestyle="--", alpha=0.6)
+        plt.tight_layout()
         st.pyplot(fig)
 
         # Gráfico de medidas
@@ -117,20 +120,23 @@ try:
         ax.plot(dados_aluno["Data"], dados_aluno["Cintura"], marker="o", label="Cintura (cm)", color="orange")
         ax.plot(dados_aluno["Data"], dados_aluno["Quadril"], marker="o", label="Quadril (cm)", color="purple")
         for x, y in zip(dados_aluno["Data"], dados_aluno["Cintura"]):
-            ax.annotate(f"{y:.1f}", (x, y), textcoords="offset points", xytext=(0, 10), ha="center")
+            ax.annotate(f"{y:.1f}", (x, y + 1.5), textcoords="offset points", ha="center")
         for x, y in zip(dados_aluno["Data"], dados_aluno["Quadril"]):
-            ax.annotate(f"{y:.1f}", (x, y), textcoords="offset points", xytext=(0, -10), ha="center")
+            ax.annotate(f"{y:.1f}", (x, y - 2.5), textcoords="offset points", ha="center")
 
         # Personalizar gráfico
         ax.set_title("Progresso das Medidas")
         ax.set_xlabel("Data")
         ax.set_ylabel("Medidas (cm)")
-        ax.legend()
+        ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1))  # Legenda fora do gráfico
         ax.grid(True, linestyle="--", alpha=0.6)
+        plt.tight_layout()
         st.pyplot(fig)
 
-        # Feedback sobre IMC
+        # Feedback sobre IMC e RCQ
         st.subheader("Feedback sobre a Saúde")
+
+        # IMC Feedback
         imc_atual = dados_aluno["IMC"].iloc[-1]
         st.write(f"IMC atual: {imc_atual:.1f}")
         if imc_atual < 18.5:
@@ -145,5 +151,23 @@ try:
             st.error("Obesidade grau II.")
         else:
             st.error("Obesidade grau III.")
+
+        # RCQ Feedback
+        razao_cq_atual = dados_aluno["C/Q"].iloc[-1]
+        st.write(f"Relação Cintura-Quadril atual (RCQ): {razao_cq_atual:.2f}")
+        if dados_aluno["Sexo"].iloc[-1] == "Masculino":
+            if razao_cq_atual <= 0.90:
+                st.success("RCQ está dentro do padrão saudável (Baixo Risco).")
+            elif 0.91 <= razao_cq_atual < 1.00:
+                st.warning("RCQ indica Moderado Risco.")
+            else:
+                st.error("RCQ indica Alto Risco.")
+        elif dados_aluno["Sexo"].iloc[-1] == "Feminino":
+            if razao_cq_atual <= 0.85:
+                st.success("RCQ está dentro do padrão saudável (Baixo Risco).")
+            elif 0.86 <= razao_cq_atual < 0.95:
+                st.warning("RCQ indica Moderado Risco.")
+            else:
+                st.error("RCQ indica Alto Risco.")
 except FileNotFoundError:
     st.warning("Nenhum dado encontrado. Por favor, insira os dados de um aluno para começar.")

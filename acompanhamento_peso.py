@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import datetime
+import datetime as dt
 import matplotlib.pyplot as plt
 
 # -----------------------------------------------------------
@@ -16,11 +16,11 @@ st.sidebar.header("Inserir dados do aluno")
 # Entrada dos dados do aluno
 nome = st.sidebar.text_input("Nome do aluno")
 sexo = st.sidebar.selectbox("Sexo", ["Masculino", "Feminino"])
-altura = st.sidebar.number_input("Altura (em metros)", format="%.2f")
-peso = st.sidebar.number_input("Peso atual (em kg)", format="%.1f")
-cintura = st.sidebar.number_input("Circunferência da Cintura (em cm)", format="%.1f")
-quadril = st.sidebar.number_input("Circunferência do Quadril (em cm)", format="%.1f")
-data = st.sidebar.date_input("Data da medição", value=datetime.date.today())
+altura = st.sidebar.number_input("Altura (em metros)", format="%.2f", min_value=0.0, step=0.01)
+peso = st.sidebar.number_input("Peso atual (em kg)", format="%.1f", min_value=0.0, step=0.1)
+cintura = st.sidebar.number_input("Circunferência da Cintura (em cm)", format="%.1f", min_value=0.0, step=0.1)
+quadril = st.sidebar.number_input("Circunferência do Quadril (em cm)", format="%.1f", min_value=0.0, step=0.1)
+data = st.sidebar.date_input("Data da medição", value=dt.date.today())
 
 # Botão para gravar dados
 if st.sidebar.button("Salvar Dados"):
@@ -32,8 +32,8 @@ if st.sidebar.button("Salvar Dados"):
             dados = pd.DataFrame(columns=["Nome", "Sexo", "Data", "Altura", "Peso", "Cintura", "Quadril", "IMC", "C/Q"])
 
         # Cálculos
-        imc = peso / (altura ** 2) if altura > 0 else 0
-        razao_cq = cintura / quadril if quadril > 0 else 0
+        imc = round(peso / (altura ** 2), 2) if altura > 0 else None
+        razao_cq = round(cintura / quadril, 2) if quadril > 0 else None
 
         # Novo registro
         novo_dado = pd.DataFrame({
@@ -57,9 +57,9 @@ if st.sidebar.button("Salvar Dados"):
 
 # -----------------------------------------------------------
 # ---- Exibição de dados e gráficos
-# Importação da base de dados
 try:
     dados = pd.read_csv("dados_alunos.csv")
+    dados["Data"] = pd.to_datetime(dados["Data"])  # Converter para datetime
 
     # Seleção de aluno para análise
     alunos = dados["Nome"].unique()
@@ -78,10 +78,11 @@ try:
 
         # Plotar gráfico de peso com faixa saudável de peso
         fig, ax = plt.subplots()
-        # Adicionar faixa de peso ideal (área sombreada)
-        altura_atual = dados_aluno["Altura"].iloc[-1]  # Garantindo altura do último registro
-        peso_minimo = 18.5 * (altura_atual ** 2)
-        peso_maximo = 24.9 * (altura_atual ** 2)
+        altura_atual = dados_aluno["Altura"].iloc[-1]
+        peso_minimo = round(18.5 * (altura_atual ** 2), 2)
+        peso_maximo = round(24.9 * (altura_atual ** 2), 2)
+
+        # Adicionar faixa de peso saudável
         ax.axhspan(peso_minimo, peso_maximo, color="green", alpha=0.2, label="Faixa de Peso Ideal")
 
         # Plotar o progresso do peso
@@ -94,8 +95,6 @@ try:
 
         # Plotar gráfico de medidas (cintura e quadril) com faixas ideais para cintura
         fig, ax = plt.subplots()
-
-        # Faixas para a circunferência da cintura conforme o sexo
         if sexo == "Masculino":
             cintura_max = 94
             cintura_alerta = 102
@@ -120,33 +119,14 @@ try:
         # Feedback quanto aos parâmetros
         st.subheader("Feedback sobre a saúde")
         imc_atual = dados_aluno["IMC"].iloc[-1]
-        razao_cq_atual = dados_aluno["C/Q"].iloc[-1]
-
-         # Faixas de IMC (mantido do seu código original)
         if imc_atual < 18.5:
-            st.warning("IMC indica magreza (abaixo de 18,5)")
+            st.warning(f"Seu IMC atual ({imc_atual}) indica magreza (abaixo de 18,5).")
         elif 18.5 <= imc_atual < 24.9:
-            st.success("IMC dentro da faixa saudável (18,5 a 24,9).")
+            st.success(f"Seu IMC atual ({imc_atual}) está dentro da faixa saudável (18,5 a 24,9).")
         elif 25 <= imc_atual < 29.9:
-            st.warning("IMC indica sobrepeso (25 a 29,9)")
+            st.warning(f"Seu IMC atual ({imc_atual}) indica sobrepeso (25 a 29,9).")
         else:
-            st.error("IMC indica obesidade (acima de 30).")
-        
-        # Faixas da RCQ de acordo com a OMS
-        if sexo == "Masculino":
-            if razao_cq_atual <= 0.90:
-                st.success("A relação cintura-quadril está dentro do padrão saudável (Baixo Risco).")
-            elif 0.91 <= razao_cq_atual < 1.00:
-                st.warning("Relação cintura-quadril indica Moderado Risco.")
-            else:
-                st.error("Relação cintura-quadril indica Alto Risco.")
-        elif sexo == "Feminino":
-            if razao_cq_atual <= 0.85:
-                st.success("A relação cintura-quadril está dentro do padrão saudável (Baixo Risco).")
-            elif 0.86 <= razao_cq_atual < 0.95:
-                st.warning("Relação cintura-quadril indica Moderado Risco.")
-            else:
-                st.error("Relação cintura-quadril indica Alto Risco.")
+            st.error(f"Seu IMC atual ({imc_atual}) indica obesidade (acima de 30).")
 
 except FileNotFoundError:
     st.warning("Nenhum dado encontrado. Por favor, insira os dados de um aluno para começar.")

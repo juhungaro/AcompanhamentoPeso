@@ -75,21 +75,8 @@ try:
         st.dataframe(dados_aluno)
 
         # --- Gráfico do Peso ---
-        st.subheader("Progresso do Peso com Faixa Ideal")
+        st.subheader("Progresso do Peso")
         fig, ax = plt.subplots(figsize=(10, 6))
-        altura_atual = dados_aluno["Altura"].iloc[-1]
-
-        # Calcular faixa de peso ideal
-        peso_minimo = round(18.5 * (altura_atual ** 2), 2)
-        peso_maximo = round(24.9 * (altura_atual ** 2), 2)
-
-        # Adicionar faixa de peso saudável
-        ax.axhspan(peso_minimo, peso_maximo, color="green", alpha=0.3, label="Faixa de Peso Ideal")
-
-        # Ajustar limites do eixo Y
-        peso_min = min(peso_minimo, dados_aluno["Peso"].min()) - 2
-        peso_max = max(peso_maximo, dados_aluno["Peso"].max()) + 2
-        ax.set_ylim(peso_min, peso_max)
 
         # Plotar progresso do peso
         ax.plot(dados_aluno["Data"], dados_aluno["Peso"], marker="o", label="Peso (kg)", color="blue")
@@ -100,35 +87,65 @@ try:
         ax.set_xlabel("Data")
         ax.set_ylabel("Peso (kg)")
         ax.grid(alpha=0.4, linestyle="--")
-        ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1))
-        plt.tight_layout()
+        ax.legend(["Peso (kg)"], loc="upper right")
         st.pyplot(fig)
 
         # --- Gráfico de Medidas ---
         st.subheader("Progresso das Medidas")
         fig, ax = plt.subplots(figsize=(10, 6))
 
-        # Faixas para cintura
-        cintura_max = 94 if sexo == "Masculino" else 80
-        cintura_alerta = 102 if sexo == "Masculino" else 88
-        ax.axhspan(0, cintura_max, color="green", alpha=0.2, label="Saudável")
-        ax.axhspan(cintura_max, cintura_alerta, color="yellow", alpha=0.2, label="Moderado")
-        ax.axhspan(cintura_alerta, max(cintura_alerta + 10, dados_aluno["Cintura"].max()), color="red", alpha=0.2, label="Alto Risco")
-
         # Plotar progresso de cintura e quadril
         ax.plot(dados_aluno["Data"], dados_aluno["Cintura"], marker="o", label="Cintura (cm)", color="orange")
         ax.plot(dados_aluno["Data"], dados_aluno["Quadril"], marker="o", label="Quadril (cm)", color="purple")
 
-        ax.set_title("Progresso das Medidas")
+        # Anotações
+        for x, y in zip(dados_aluno["Data"], dados_aluno["Cintura"]):
+            ax.annotate(f"{y:.1f}", (x, y + 1.5), textcoords="offset points", ha="center")
+        for x, y in zip(dados_aluno["Data"], dados_aluno["Quadril"]):
+            ax.annotate(f"{y:.1f}", (x, y - 1.5), textcoords="offset points", ha="center")
+
+        ax.set_title("Progresso de Cintura e Quadril")
         ax.set_xlabel("Data")
         ax.set_ylabel("Medidas (cm)")
-        ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1))
-        plt.tight_layout()
+        ax.grid(alpha=0.4, linestyle="--")
+        ax.legend(["Cintura (cm)", "Quadril (cm)"], loc="upper right")
         st.pyplot(fig)
 
-        # --- Feedback ---
-        st.subheader("Feedback:")
-        imc = dados_aluno["IMC"].iloc[-1]
-        st.write(f"**IMC Atual:** {imc}")
+        # --- Feedback do IMC ---
+        st.subheader("Classificação do IMC")
+        imc_atual = dados_aluno["IMC"].iloc[-1]
+        st.write(f"**IMC Atual:** {imc_atual:.1f}")
+        if imc_atual < 18.5:
+            st.warning("Classificação: Magreza (IMC < 18.5). Consulte um especialista.")
+        elif 18.5 <= imc_atual < 24.9:
+            st.success("Classificação: Peso normal (IMC 18.5 - 24.9). Continue assim!")
+        elif 25 <= imc_atual < 29.9:
+            st.warning("Classificação: Sobrepeso (IMC 25 - 29.9). Cuide-se com hábitos saudáveis.")
+        elif 30 <= imc_atual < 34.9:
+            st.error("Classificação: Obesidade Grau I (IMC 30 - 34.9). Acompanhamento recomendado.")
+        elif 35 <= imc_atual < 39.9:
+            st.error("Classificação: Obesidade Grau II (IMC 35 - 39.9). Procure ajuda especializada.")
+        else:
+            st.error("Classificação: Obesidade Grau III (IMC ≥ 40). Intervenção necessária.")
+
+        # --- Feedback do RCQ ---
+        st.subheader("Classificação do RCQ")
+        razao_cq_atual = dados_aluno["C/Q"].iloc[-1]
+        st.write(f"**RCQ Atual:** {razao_cq_atual}")
+        if sexo == "Masculino":
+            if razao_cq_atual <= 0.90:
+                st.success("RCQ dentro da faixa saudável (RCQ ≤ 0.90).")
+            elif 0.91 <= razao_cq_atual < 1.00:
+                st.warning("RCQ moderado (RCQ 0.91 - 0.99). Fique atento.")
+            else:
+                st.error("RCQ elevado (RCQ ≥ 1.00). Risco à saúde.")
+        else:
+            if razao_cq_atual <= 0.85:
+                st.success("RCQ dentro da faixa saudável (RCQ ≤ 0.85).")
+            elif 0.86 <= razao_cq_atual < 0.95:
+                st.warning("RCQ moderado (RCQ 0.86 - 0.94). Fique atento.")
+            else:
+                st.error("RCQ elevado (RCQ ≥ 0.95). Risco à saúde.")
+
 except FileNotFoundError:
-    st.warning("Sem dados existentes.")
+    st.warning("Nenhum dado encontrado. Por favor, insira os dados de um aluno para começar!")

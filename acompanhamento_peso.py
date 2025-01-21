@@ -59,7 +59,11 @@ if st.sidebar.button("Salvar Dados"):
 # ---- Exibição de dados e gráficos
 try:
     dados = pd.read_csv("dados_alunos.csv")
-    dados["Data"] = pd.to_datetime(dados["Data"])  # Converter para datetime
+
+    # Garantir que as colunas estão no formato correto
+    dados["Data"] = pd.to_datetime(dados["Data"], errors="coerce")  # Converter `Data` para datetime
+    dados["Peso"] = pd.to_numeric(dados["Peso"], errors="coerce")   # Garantir que `Peso` é numérico
+    dados.dropna(subset=["Data", "Peso"], inplace=True)  # Remover linhas com dados inválidos
 
     # Seleção de aluno para análise
     alunos = dados["Nome"].unique()
@@ -67,66 +71,71 @@ try:
 
     if aluno_selecionado:
         # Filtrar dados do aluno
-        dados_aluno = dados[dados["Nome"] == aluno_selecionado]
+        dados_aluno = dados[dados["Nome"] == aluno_selecionado].sort_values(by="Data")
 
         # Exibir tabela de dados
         st.subheader(f"Dados de {aluno_selecionado}")
         st.dataframe(dados_aluno)
 
-        # Exibir gráficos de progresso
-        st.subheader("Progresso ao longo do tempo")
+        # Verificar se há dados suficientes para plotar
+        if len(dados_aluno) > 0:
+            # Exibir gráficos de progresso
+            st.subheader("Progresso ao longo do tempo")
 
-        # Plotar gráfico de peso com faixa saudável de peso
-        fig, ax = plt.subplots()
-        altura_atual = dados_aluno["Altura"].iloc[-1]
-        peso_minimo = round(18.5 * (altura_atual ** 2), 2)
-        peso_maximo = round(24.9 * (altura_atual ** 2), 2)
+            # Plotar gráfico de peso com faixa saudável de peso
+            fig, ax = plt.subplots()
+            altura_atual = dados_aluno["Altura"].iloc[-1] if not dados_aluno["Altura"].isnull().all() else None
 
-        # Adicionar faixa de peso saudável
-        ax.axhspan(peso_minimo, peso_maximo, color="green", alpha=0.2, label="Faixa de Peso Ideal")
+            if altura_atual and altura_atual > 0:
+                peso_minimo = round(18.5 * (altura_atual ** 2), 2)
+                peso_maximo = round(24.9 * (altura_atual ** 2), 2)
 
-        # Plotar o progresso do peso
-        ax.plot(dados_aluno["Data"], dados_aluno["Peso"], marker="o", label="Peso (kg)", color="blue")
-        ax.set_title("Progresso do Peso com Faixa Ideal")
-        ax.set_xlabel("Data")
-        ax.set_ylabel("Peso (kg)")
-        ax.legend()
-        st.pyplot(fig)
+                # Adicionar faixa de peso saudável
+                ax.axhspan(peso_minimo, peso_maximo, color="green", alpha=0.2, label="Faixa de Peso Ideal")
 
-        # Plotar gráfico de medidas (cintura e quadril) com faixas ideais para cintura
-        fig, ax = plt.subplots()
-        if sexo == "Masculino":
-            cintura_max = 94
-            cintura_alerta = 102
-        elif sexo == "Feminino":
-            cintura_max = 80
-            cintura_alerta = 88
+            # Plotar o progresso do peso
+            ax.plot(dados_aluno["Data"], dados_aluno["Peso"], marker="o", label="Peso (kg)", color="blue")
+            ax.set_title("Progresso do Peso com Faixa Ideal")
+            ax.set_xlabel("Data")
+            ax.set_ylabel("Peso (kg)")
+            ax.legend()
+            st.pyplot(fig)
 
-        # Adicionar as faixas de cintura ao gráfico
-        ax.axhspan(0, cintura_max, color="green", alpha=0.2, label="Faixa Saudável (Cintura)")
-        ax.axhspan(cintura_max, cintura_alerta, color="yellow", alpha=0.2, label="Risco Moderado (Cintura)")
-        ax.axhspan(cintura_alerta, max(dados_aluno["Cintura"].max() + 10, cintura_alerta + 10), color="red", alpha=0.2, label="Risco Alto (Cintura)")
+            # Plotar gráfico de medidas (cintura e quadril) com faixas ideais para cintura
+            fig, ax = plt.subplots()
+            if sexo == "Masculino":
+                cintura_max = 94
+                cintura_alerta = 102
+            elif sexo == "Feminino":
+                cintura_max = 80
+                cintura_alerta = 88
 
-        # Plotar o progresso das medidas
-        ax.plot(dados_aluno["Data"], dados_aluno["Cintura"], marker="o", label="Cintura (cm)", color="orange")
-        ax.plot(dados_aluno["Data"], dados_aluno["Quadril"], marker="o", label="Quadril (cm)", color="purple")
-        ax.set_title("Progresso das Medidas com Faixas Ideais")
-        ax.set_xlabel("Data")
-        ax.set_ylabel("Medidas (cm)")
-        ax.legend()
-        st.pyplot(fig)
+            # Adicionar as faixas de cintura ao gráfico
+            ax.axhspan(0, cintura_max, color="green", alpha=0.2, label="Faixa Saudável (Cintura)")
+            ax.axhspan(cintura_max, cintura_alerta, color="yellow", alpha=0.2, label="Risco Moderado (Cintura)")
+            ax.axhspan(cintura_alerta, max(dados_aluno["Cintura"].max() + 10, cintura_alerta + 10), color="red", alpha=0.2, label="Risco Alto (Cintura)")
 
-        # Feedback quanto aos parâmetros
-        st.subheader("Feedback sobre a saúde")
-        imc_atual = dados_aluno["IMC"].iloc[-1]
-        if imc_atual < 18.5:
-            st.warning(f"Seu IMC atual ({imc_atual}) indica magreza (abaixo de 18,5).")
-        elif 18.5 <= imc_atual < 24.9:
-            st.success(f"Seu IMC atual ({imc_atual}) está dentro da faixa saudável (18,5 a 24,9).")
-        elif 25 <= imc_atual < 29.9:
-            st.warning(f"Seu IMC atual ({imc_atual}) indica sobrepeso (25 a 29,9).")
+            # Plotar o progresso das medidas
+            ax.plot(dados_aluno["Data"], dados_aluno["Cintura"], marker="o", label="Cintura (cm)", color="orange")
+            ax.plot(dados_aluno["Data"], dados_aluno["Quadril"], marker="o", label="Quadril (cm)", color="purple")
+            ax.set_title("Progresso das Medidas com Faixas Ideais")
+            ax.set_xlabel("Data")
+            ax.set_ylabel("Medidas (cm)")
+            ax.legend()
+            st.pyplot(fig)
+
+            # Feedback quanto aos parâmetros
+            st.subheader("Feedback sobre a saúde")
+            imc_atual = dados_aluno["IMC"].iloc[-1]
+            if imc_atual < 18.5:
+                st.warning(f"Seu IMC atual ({imc_atual}) indica magreza (abaixo de 18,5).")
+            elif 18.5 <= imc_atual < 24.9:
+                st.success(f"Seu IMC atual ({imc_atual}) está dentro da faixa saudável (18,5 a 24,9).")
+            elif 25 <= imc_atual < 29.9:
+                st.warning(f"Seu IMC atual ({imc_atual}) indica sobrepeso (25 a 29,9).")
+            else:
+                st.error(f"Seu IMC atual ({imc_atual}) indica obesidade (acima de 30).")
         else:
-            st.error(f"Seu IMC atual ({imc_atual}) indica obesidade (acima de 30).")
-
+            st.warning("Não há dados suficientes para exibir os gráficos.")
 except FileNotFoundError:
     st.warning("Nenhum dado encontrado. Por favor, insira os dados de um aluno para começar.")

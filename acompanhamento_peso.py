@@ -142,23 +142,90 @@ try:
                 st.warning(f"IMC: {imc_atual:.1f} - Classificação: {classificacao}")
             else:
                 st.error(f"IMC: {imc_atual:.1f} - Classificação: {classificacao}")
-
-                   
+            
+            # Gráficos
+            tab1, tab2 = st.tabs(["Progresso do Peso", "Medidas Corporais"])
+            
+            with tab1:
+                fig, ax = plt.subplots(figsize=(10, 6))
+                ax.plot(dados_aluno["Data"], dados_aluno["Peso"], 
+                       marker="o", linewidth=2, color='#2E86C1')
+                
+                # Adicionar valores nos pontos
+                for x, y in zip(dados_aluno["Data"], dados_aluno["Peso"]):
+                    ax.annotate(f'{y:.1f}', 
+                              (x, y), 
+                              textcoords="offset points", 
+                              xytext=(0,10), 
+                              ha='center',
+                              fontsize=9)
+                
+                ax.set_title("Progresso do Peso", pad=20, fontsize=14)
+                ax.set_xlabel("Data", fontsize=12)
+                ax.set_ylabel("Peso (kg)", fontsize=12)
+                ax.grid(True, alpha=0.3)
+                plt.xticks(rotation=45)
+                plt.tight_layout()
+                
+                st.pyplot(fig)
+                plt.close()
+            
+            with tab2:
+                if not dados_aluno["Cintura"].isnull().all() and not dados_aluno["Quadril"].isnull().all():
+                    fig, ax = plt.subplots(figsize=(10, 6))
+                    
+                    # Plotar linha da cintura
+                    ax.plot(dados_aluno["Data"], dados_aluno["Cintura"], 
+                           marker="o", label="Cintura", color='#E74C3C')
+                    
+                    # Plotar linha do quadril
+                    ax.plot(dados_aluno["Data"], dados_aluno["Quadril"], 
+                           marker="o", label="Quadril", color='#8E44AD')
+                    
+                    # Adicionar valores nos pontos
+                    for x, y in zip(dados_aluno["Data"], dados_aluno["Cintura"]):
+                        ax.annotate(f'{y:.1f}', 
+                                  (x, y), 
+                                  textcoords="offset points", 
+                                  xytext=(0,10), 
+                                  ha='center',
+                                  fontsize=9)
+                    
+                    for x, y in zip(dados_aluno["Data"], dados_aluno["Quadril"]):
+                        ax.annotate(f'{y:.1f}', 
+                                  (x, y), 
+                                  textcoords="offset points", 
+                                  xytext=(0,-15), 
+                                  ha='center',
+                                  fontsize=9)
+                    
+                    ax.set_title("Medidas Corporais", pad=20, fontsize=14)
+                    ax.set_xlabel("Data", fontsize=12)
+                    ax.set_ylabel("Centímetros", fontsize=12)
+                    ax.legend()
+                    ax.grid(True, alpha=0.3)
+                    plt.xticks(rotation=45)
+                    plt.tight_layout()
+                    
+                    st.pyplot(fig)
+                    plt.close()
+                else:
+                    st.warning("Dados de medidas insuficientes para gerar o gráfico")
+            
             # Tabela de dados
             st.subheader("Histórico de Medições")
-            st.dataframe(dados_aluno.sort_values("Data", ascending=False))
+            dados_display = dados_aluno.sort_values("Data", ascending=False).copy()
+            dados_display["Data"] = dados_display["Data"].dt.strftime('%d/%m/%Y')
+            st.dataframe(dados_display, use_container_width=True)
             
             # Botão de download
             csv = dados_aluno.to_csv(index=False)
             st.download_button(
-                label="Download dos dados",
+                label="📥 Download dos dados",
                 data=csv,
                 file_name=f"dados_{aluno_selecionado}.csv",
                 mime="text/csv"
             )
             
-    else:
-        st.info("Nenhum dado encontrado. Insira os dados de um aluno para começar!")
-        
 except Exception as e:
     st.error(f"Ocorreu um erro ao carregar os dados: {str(e)}")

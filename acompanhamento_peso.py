@@ -61,7 +61,7 @@ try:
     dados = pd.read_csv("dados_alunos.csv")
 
     # Converter valores das colunas para os formatos apropriados
-    dados["Data"] = pd.to_datetime(dados["Data"], errors="coerce")
+    dados["Data"] = pd.to_datetime(dados["Data"], errors="coerce")  # Converter as datas
     dados.dropna(subset=["Data", "Peso", "Cintura", "Quadril"], inplace=True)
 
     # Selecionar aluno para visualização
@@ -76,57 +76,49 @@ try:
 
         # --- Gráfico do Peso ---
         st.subheader("Progresso do Peso com Faixa Ideal")
-        fig, ax = plt.subplots(figsize=(10, 5))
+        fig, ax = plt.subplots(figsize=(10, 6))
         altura_atual = dados_aluno["Altura"].iloc[-1]
 
         # Calcular faixa de peso ideal
         peso_minimo = round(18.5 * (altura_atual ** 2), 2)
         peso_maximo = round(24.9 * (altura_atual ** 2), 2)
 
-        # Faixa de peso saudável
-        ax.axhspan(peso_minimo, peso_maximo, color="green", alpha=0.2, label="Faixa de Peso Ideal")
+        # Adicionar faixa de peso saudável
+        ax.axhspan(peso_minimo, peso_maximo, color="green", alpha=0.3, label="Faixa de Peso Ideal")
 
-        # Configurar limites do gráfico no eixo Y
+        # Ajustar limites do eixo Y
         peso_min = min(peso_minimo, dados_aluno["Peso"].min()) - 2
         peso_max = max(peso_maximo, dados_aluno["Peso"].max()) + 2
         ax.set_ylim(peso_min, peso_max)
 
-        # Progresso do peso
+        # Plotar progresso do peso
         ax.plot(dados_aluno["Data"], dados_aluno["Peso"], marker="o", label="Peso (kg)", color="blue")
         for x, y in zip(dados_aluno["Data"], dados_aluno["Peso"]):
             ax.annotate(f"{y:.1f}", (x, y), textcoords="offset points", xytext=(0, 10), ha="center")
 
-        # Configurar título e rótulos
-        ax.set_title("Progresso do Peso com Faixa Ideal")
+        ax.set_title("Progresso do Peso")
         ax.set_xlabel("Data")
         ax.set_ylabel("Peso (kg)")
+        ax.grid(alpha=0.4, linestyle="--")
         ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1))
         plt.tight_layout()
         st.pyplot(fig)
 
         # --- Gráfico de Medidas ---
-        st.subheader("Progresso das Medidas com Faixa de Risco")
-        fig, ax = plt.subplots(figsize=(10, 5))
-        sexo_aluno = dados_aluno["Sexo"].iloc[-1]
+        st.subheader("Progresso das Medidas")
+        fig, ax = plt.subplots(figsize=(10, 6))
 
-        # Faixas de risco baseadas no sexo
-        cintura_max = 94 if sexo_aluno == "Masculino" else 80
-        cintura_alerta = 102 if sexo_aluno == "Masculino" else 88
+        # Faixas para cintura
+        cintura_max = 94 if sexo == "Masculino" else 80
+        cintura_alerta = 102 if sexo == "Masculino" else 88
+        ax.axhspan(0, cintura_max, color="green", alpha=0.2, label="Saudável")
+        ax.axhspan(cintura_max, cintura_alerta, color="yellow", alpha=0.2, label="Moderado")
+        ax.axhspan(cintura_alerta, max(cintura_alerta + 10, dados_aluno["Cintura"].max()), color="red", alpha=0.2, label="Alto Risco")
 
-        # Adicionar faixas de risco
-        ax.axhspan(0, cintura_max, color="green", alpha=0.2, label="Faixa Saudável (Cintura)")
-        ax.axhspan(cintura_max, cintura_alerta, color="yellow", alpha=0.2, label="Risco Moderado (Cintura)")
-        ax.axhspan(cintura_alerta, dados_aluno["Cintura"].max() + 10, color="red", alpha=0.2, label="Risco Alto (Cintura)")
-
-        # Progresso de medidas
+        # Plotar progresso de cintura e quadril
         ax.plot(dados_aluno["Data"], dados_aluno["Cintura"], marker="o", label="Cintura (cm)", color="orange")
         ax.plot(dados_aluno["Data"], dados_aluno["Quadril"], marker="o", label="Quadril (cm)", color="purple")
-        for x, y in zip(dados_aluno["Data"], dados_aluno["Cintura"]):
-            ax.annotate(f"{y:.1f}", (x, y + 2), textcoords="offset points", ha="center")
-        for x, y in zip(dados_aluno["Data"], dados_aluno["Quadril"]):
-            ax.annotate(f"{y:.1f}", (x, y - 2), textcoords="offset points", ha="center")
 
-        # Configuração gráfica
         ax.set_title("Progresso das Medidas")
         ax.set_xlabel("Data")
         ax.set_ylabel("Medidas (cm)")
@@ -134,41 +126,9 @@ try:
         plt.tight_layout()
         st.pyplot(fig)
 
-        # --- Feedback do IMC e RCQ ---
-        st.subheader("Feedback sobre Saúde")
-
-        # Cálculo do IMC
-        imc_atual = dados_aluno["IMC"].iloc[-1]
-        st.write(f"**IMC atual:** {imc_atual}")
-        if imc_atual < 18.5:
-            st.warning("Classificação: Magreza")
-        elif 18.5 <= imc_atual < 24.9:
-            st.success("Classificação: Peso normal")
-        elif 24.9 <= imc_atual < 29.9:
-            st.warning("Classificação: Sobrepeso")
-        elif 29.9 <= imc_atual < 34.9:
-            st.error("Classificação: Obesidade grau I")
-        elif 34.9 <= imc_atual < 39.9:
-            st.error("Classificação: Obesidade grau II")
-        else:
-            st.error("Classificação: Obesidade grau III")
-
-        # Feedback do RCQ
-        razao_cq = dados_aluno["C/Q"].iloc[-1]
-        st.write(f"**Relação cintura-quadril (RCQ):** {razao_cq}")
-        if sexo_aluno == "Masculino":
-            if razao_cq <= 0.90:
-                st.success("RCQ dentro da faixa saudável.")
-            elif razao_cq <= 1.00:
-                st.warning("RCQ com risco moderado.")
-            else:
-                st.error("RCQ com risco alto.")
-        else:
-            if razao_cq <= 0.85:
-                st.success("RCQ dentro da faixa saudável.")
-            elif razao_cq <= 0.95:
-                st.warning("RCQ com risco moderado.")
-            else:
-                st.error("RCQ com risco alto.")
+        # --- Feedback ---
+        st.subheader("Feedback:")
+        imc = dados_aluno["IMC"].iloc[-1]
+        st.write(f"**IMC Atual:** {imc}")
 except FileNotFoundError:
-    st.warning("Nenhum dado encontrado. Por favor, insira os dados de um aluno para começar.")
+    st.warning("Sem dados existentes.")

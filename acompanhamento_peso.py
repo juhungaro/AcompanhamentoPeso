@@ -83,33 +83,42 @@ try:
             st.subheader("Progresso ao longo do tempo")
 
             # Plotar gráfico de peso com faixa saudável de peso
-            fig, ax = plt.subplots()
+            fig, ax = plt.subplots(figsize=(12, 6))
             altura_atual = dados_aluno["Altura"].iloc[-1] if not dados_aluno["Altura"].isnull().all() else None
 
             if altura_atual and altura_atual > 0:
                 peso_minimo = round(18.5 * (altura_atual ** 2), 2)
                 peso_maximo = round(24.9 * (altura_atual ** 2), 2)
 
+                # Configurar limites do eixo Y incluindo a faixa ideal
+                peso_min = min(dados_aluno["Peso"].min() - 2, peso_minimo - 2)
+                peso_max = max(dados_aluno["Peso"].max() + 2, peso_maximo + 2)
+                ax.set_ylim(peso_min, peso_max)
+
                 # Adicionar faixa de peso saudável
                 ax.axhspan(peso_minimo, peso_maximo, color="green", alpha=0.2, label="Faixa de Peso Ideal")
 
             # Plotar o progresso do peso
             ax.plot(dados_aluno["Data"], dados_aluno["Peso"], marker="o", label="Peso (kg)", color="blue")
-            
+
             # Adicionar valores nos pontos do gráfico
             for x, y in zip(dados_aluno["Data"], dados_aluno["Peso"]):
                 ax.annotate(f'{y:.1f}', (x, y), textcoords="offset points", xytext=(0,10), ha='center')
-            
+
+            # Configurar eixo X para mostrar apenas as datas das pesagens
+            ax.set_xticks(dados_aluno["Data"])
+            ax.set_xticklabels([d.strftime('%d/%m/%Y') for d in dados_aluno["Data"]], rotation=45)
+
             ax.set_title("Progresso do Peso com Faixa Ideal")
             ax.set_xlabel("Data")
             ax.set_ylabel("Peso (kg)")
-            ax.legend()
-            plt.xticks(rotation=45)
+            ax.grid(True, linestyle='--', alpha=0.7)
+            ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
             plt.tight_layout()
             st.pyplot(fig)
 
             # Plotar gráfico de medidas
-            fig, ax = plt.subplots()
+            fig, ax = plt.subplots(figsize=(12, 6))
             if sexo == "Masculino":
                 cintura_max = 94
                 cintura_alerta = 102
@@ -117,19 +126,35 @@ try:
                 cintura_max = 80
                 cintura_alerta = 88
 
+            # Configurar limites do eixo Y
+            medida_min = min(dados_aluno["Cintura"].min(), dados_aluno["Quadril"].min()) - 5
+            medida_max = max(dados_aluno["Cintura"].max(), dados_aluno["Quadril"].max(), cintura_alerta + 5)
+            ax.set_ylim(medida_min, medida_max)
+
             # Adicionar as faixas de cintura ao gráfico
-            ax.axhspan(0, cintura_max, color="green", alpha=0.2, label="Faixa Saudável (Cintura)")
-            ax.axhspan(cintura_max, cintura_alerta, color="yellow", alpha=0.2, label="Risco Moderado (Cintura)")
-            ax.axhspan(cintura_alerta, max(dados_aluno["Cintura"].max() + 10, cintura_alerta + 10), color="red", alpha=0.2, label="Risco Alto (Cintura)")
+            ax.axhspan(0, cintura_max, color="green", alpha=0.2, label="Faixa Saudável")
+            ax.axhspan(cintura_max, cintura_alerta, color="yellow", alpha=0.2, label="Risco Moderado")
+            ax.axhspan(cintura_alerta, medida_max, color="red", alpha=0.2, label="Risco Alto")
 
             # Plotar o progresso das medidas
             ax.plot(dados_aluno["Data"], dados_aluno["Cintura"], marker="o", label="Cintura (cm)", color="orange")
             ax.plot(dados_aluno["Data"], dados_aluno["Quadril"], marker="o", label="Quadril (cm)", color="purple")
+
+            # Adicionar valores nos pontos do gráfico
+            for x, y in zip(dados_aluno["Data"], dados_aluno["Cintura"]):
+                ax.annotate(f'{y:.1f}', (x, y), textcoords="offset points", xytext=(0,10), ha='center')
+            for x, y in zip(dados_aluno["Data"], dados_aluno["Quadril"]):
+                ax.annotate(f'{y:.1f}', (x, y), textcoords="offset points", xytext=(0,-15), ha='center')
+
+            # Configurar eixo X para mostrar apenas as datas das medições
+            ax.set_xticks(dados_aluno["Data"])
+            ax.set_xticklabels([d.strftime('%d/%m/%Y') for d in dados_aluno["Data"]], rotation=45)
+
             ax.set_title("Progresso das Medidas com Faixas Ideais")
             ax.set_xlabel("Data")
             ax.set_ylabel("Medidas (cm)")
-            ax.legend()
-            plt.xticks(rotation=45)
+            ax.grid(True, linestyle='--', alpha=0.7)
+            ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
             plt.tight_layout()
             st.pyplot(fig)
 
@@ -137,7 +162,7 @@ try:
             st.subheader("Feedback sobre a saúde")
             imc_atual = dados_aluno["IMC"].iloc[-1]
             
-            # Mensagem do IMC corrigida
+            # Mensagem do IMC
             if imc_atual < 18.5:
                 st.warning(f"IMC atual: {imc_atual:.1f} - Classificação: Abaixo do peso")
             elif 18.5 <= imc_atual < 25:

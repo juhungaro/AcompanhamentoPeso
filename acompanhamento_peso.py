@@ -1,3 +1,7 @@
+Peço desculpas pelo erro. Vou reorganizar e corrigir o código inteiro, garantindo que não haja erros de sintaxe. Aqui está o código completo e organizado:
+
+Python
+Copiar
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,21 +17,29 @@ def load_data():
         numeric_columns = ["Altura", "Peso", "Cintura", "Quadril", "IMC", "C/Q"]
         for col in numeric_columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
-        df["Data"] = pd.to_datetime(df["Data"])
+        df['Data'] = pd.to_datetime(df['Data'])
         return df
     except FileNotFoundError:
         return pd.DataFrame(columns=["Nome", "Sexo", "Data", "Altura", "Peso", "Cintura", "Quadril", "IMC", "C/Q"])
 
 def calculate_imc(peso, altura):
     try:
-        return round(float(peso) / (float(altura) ** 2), 2)
-    except (ValueError, ZeroDivisionError):
+        peso = float(peso)
+        altura = float(altura)
+        if altura > 0 and peso > 0:
+            return round(peso / (altura ** 2), 2)
+        return None
+    except (ValueError, TypeError):
         return None
 
 def calculate_rcq(cintura, quadril):
     try:
-        return round(float(cintura) / float(quadril), 2)
-    except (ValueError, ZeroDivisionError):
+        cintura = float(cintura)
+        quadril = float(quadril)
+        if quadril > a 0 and cintura > 0:
+            return round(cintura / quadril, 2)
+        return None
+    except (ValueError, TypeError):
         return None
 
 def get_imc_classification(imc):
@@ -47,86 +59,6 @@ def get_imc_classification(imc):
             return "Obesidade Grau III", "error"
     except (ValueError, TypeError):
         return "IMC inválido", "error"
-
-def plot_weight_progress(dados_peso, altura_atual):
-    fig, ax = plt.subplots(figsize=(10, 6))
-    
-    imc_ranges = [
-        (0, 18.5, '#fff3cd', 'Magreza'),
-        (18.5, 24.9, '#d4edda', 'Normal'),
-        (25, 29.9, '#fff3cd', 'Sobrepeso'),
-        (30, 34.9, '#f8d7da', 'Obesidade I'),
-        (35, 39.9, '#f8d7da', 'Obesidade II'),
-        (40, 50, '#f8d7da', 'Obesidade III')
-    ]
-    
-    y_min = dados_peso['Peso'].min() * 0.8
-    y_max = dados_peso['Peso'].max() * 1.2
-    
-    for imc_min, imc_max, color, label in imc_ranges:
-        peso_min = (imc_min * (altura_atual ** 2))
-        peso_max = (imc_max * (altura_atual ** 2))
-        ax.axhspan(peso_min, peso_max, color=color, alpha=0.3, label=f'Faixa {label}')
-    
-    ax.plot(dados_peso["Data"], dados_peso["Peso"], marker="o", linewidth=2, color='#2E86C1', label='Peso atual', zorder=5)
-    
-    for x, y in zip(dados_peso["Data"], dados_peso["Peso"]):
-        ax.annotate(f'{y:.1f}', (x, y), textcoords="offset points", xytext=(0,10), ha='center', fontsize=9, zorder=6)
-    
-    ax.set_title("Progresso do Peso com Faixas de Referência IMC", pad=20, fontsize=14)
-    ax.set_xlabel("Data", fontsize=12)
-    ax.set_ylabel("Peso (kg)", fontsize=12)
-    ax.grid(True, alpha=0.3, zorder=1)
-    ax.set_ylim(y_min, y_max)
-    
-    plt.xticks(dados_peso["Data"], dados_peso["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
-    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.tight_layout()
-    
-    return fig
-
-def plot_body_measurements(dados_medidas, sexo):
-    fig, ax = plt.subplots(figsize=(10, 6))
-    
-    if sexo == "Masculino":
-        cintura_ranges = [
-            (0, 94, '#d4edda', 'Normal'),
-            (94, 102, '#fff3cd', 'Risco Aumentado'),
-            (102, 200, '#f8d7da', 'Risco Alto')
-        ]
-    else:
-        cintura_ranges = [
-            (0, 80, '#d4edda', 'Normal'),
-            (80, 88, '#fff3cd', 'Risco Aumentado'),
-            (88, 200, '#f8d7da', 'Risco Alto')
-        ]
-    
-    y_min = min(dados_medidas['Cintura'].min(), dados_medidas['Quadril'].min()) * 0.9
-    y_max = max(dados_medidas['Cintura'].max(), dados_medidas['Quadril'].max()) * 1.1
-    
-    for c_min, c_max, color, label in cintura_ranges:
-        ax.axhspan(c_min, c_max, color=color, alpha=0.3, label=f'Cintura: {label}')
-    
-    ax.plot(dados_medidas["Data"], dados_medidas["Cintura"], marker="o", label="Cintura", color='#E74C3C', linewidth=2, zorder=5)
-    ax.plot(dados_medidas["Data"], dados_medidas["Quadril"], marker="o", label="Quadril", color='#8E44AD', linewidth=2, zorder=5)
-    
-    for x, y in zip(dados_medidas["Data"], dados_medidas["Cintura"]):
-        ax.annotate(f'{y:.1f}', (x, y), textcoords="offset points", xytext=(0,10), ha='center', fontsize=9, zorder=6)
-    
-    for x, y in zip(dados_medidas["Data"], dados_medidas["Quadril"]):
-        ax.annotate(f'{y:.1f}', (x, y), textcoords="offset points", xytext=(0,-15), ha='center', fontsize=9, zorder=6)
-    
-    ax.set_title(f"Medidas Corporais com Referências OMS ({sexo})", pad=20, fontsize=14)
-    ax.set_xlabel("Data", fontsize=12)
-    ax.set_ylabel("Centímetros", fontsize=12)
-    ax.grid(True, alpha=0.3, zorder=1)
-    ax.set_ylim(y_min, y_max)
-    
-    plt.xticks(dados_medidas["Data"], dados_medidas["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
-    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.tight_layout()
-    
-    return fig
 
 def criar_dashboard(dados):
     st.header("Dashboard - Visão Geral dos Alunos")
@@ -203,9 +135,7 @@ elif menu == "Visualizar Aluno":
     
     if not dados.empty:
         alunos = dados["Nome"].unique()
-        col1, col2 = st.columns([2, 1])
-        with col1:
-            aluno_selecionado = st.selectbox("Selecione um aluno", alunos)
+        aluno_selecionado = st.selectbox("Selecione um aluno", alunos)
         
         if aluno_selecionado:
             if st.button("Apagar Registro do Aluno"):
@@ -243,8 +173,56 @@ elif menu == "Visualizar Aluno":
             
             with tab1:
                 dados_peso = dados_aluno.dropna(subset=['Peso'])
+                
                 if not dados_peso.empty:
-                    fig = plot_weight_progress(dados_peso, dados_aluno['Altura'].iloc[-1])
+                    fig, ax = plt.subplots(figsize=(10, 6))
+                    
+                    altura_atual = dados_aluno['Altura'].iloc[-1]
+                    
+                    imc_ranges = [
+                        (0, 18.5, '#fff3cd', 'Magreza'),
+                        (18.5, 24.9, '#d4edda', 'Normal'),
+                        (25, 29.9, '#fff3cd', 'Sobrepeso'),
+                        (30, 34.9, '#f8d7da', 'Obesidade I'),
+                        (35, 39.9, '#f8d7da', 'Obesidade II'),
+                        (40, 50, '#f8d7da', 'Obesidade III')
+                    ]
+                    
+                    y_min = dados_peso['Peso'].min() * 0.8
+                    y_max = dados_peso['Peso'].max() * 1.2
+                    
+                    for imc_min, imc_max, color, label in imc_ranges:
+                        peso_min = (imc_min * (altura_atual ** 2))
+                        peso_max = (imc_max * (altura_atual ** 2))
+                        ax.axhspan(peso_min, peso_max, color=color, alpha=0.3, label=f'Faixa {label}')
+                    
+                    ax.plot(dados_peso["Data"], dados_peso["Peso"], 
+                           marker="o", linewidth=2, color='#2E86C1', 
+                           label='Peso atual', zorder=5)
+                    
+                    for x, y in zip(dados_peso["Data"], dados_peso["Peso"]):
+                        ax.annotate(f'{y:.1f}', 
+                                  (x, y), 
+                                  textcoords="offset points", 
+                                  xytext=(0,10), 
+                                  ha='center',
+                                  fontsize=9,
+                                  zorder=6)
+                    
+                    ax.set_title("Progresso do Peso com Faixas de Referência IMC", pad=20, fontsize=14)
+                    ax.set_xlabel("Data", fontsize=12)
+                    ax.set_ylabel("Peso (kg)", fontsize=12)
+                    ax.grid(True, alpha=0.3, zorder=1)
+                    
+                    ax.set_ylim(y_min, y_max)
+                    
+                    dates = dados_peso["Data"]
+                    plt.xticks(dates, dates.dt.strftime('%d/%m/%Y'), rotation=45)
+                    
+                    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+                    
+                    plt.tight_layout()
+                    
                     st.pyplot(fig)
                     plt.close()
                     
@@ -261,15 +239,64 @@ elif menu == "Visualizar Aluno":
 
             with tab2:
                 dados_medidas = dados_aluno.dropna(subset=['Cintura', 'Quadril'])
+                
                 if not dados_medidas.empty:
-                    fig = plot_body_measurements(dados_medidas, dados_aluno['Sexo'].iloc[0])
-                    st.pyplot(fig)
-                    plt.close()
+                    fig, ax = plt.subplots(figsize=(10, 6))
                     
-                    if dados_aluno['Sexo'].iloc[0] == "Masculino":
-                        st.markdown("""
-                        <small>
-                        * Referências de Circunferência da Cintura (OMS) para homens:<br>
-                        - Verde claro: Normal (< 94 cm)<br>
-                        - Amarelo claro: Risco Aumentado (94-102 cm)<br>
-                        - Vermelho claro: Risco Alto (> 102 cm)
+                    sexo_atual = dados_aluno['Sexo'].iloc[0]
+                    if sexo_atual == "Masculino":
+                        cintura_ranges = [
+                            (0, 94, '#d4edda', 'Normal'),
+                            (94, 102, '#fff3cd', 'Risco Aumentado'),
+                            (102, 200, '#f8d7da', 'Risco Alto')
+                        ]
+                    else:  # Feminino
+                        cintura_ranges = [
+                            (0, 80, '#d4edda', 'Normal'),
+                            (80, 88, '#fff3cd', 'Risco Aumentado'),
+                            (88, 200, '#f8d7da', 'Risco Alto')
+                        ]
+                    
+                    y_min = min(dados_medidas['Cintura'].min(), dados_medidas['Quadril'].min()) * 0.9
+                    y_max = max(dados_medidas['Cintura'].max(), dados_medidas['Quadril'].max()) * 1.1
+                    
+                    for c_min, c_max, color, label in cintura_ranges:
+                        ax.axhspan(c_min, c_max, color=color, alpha=0.3, 
+                                 label=f'Cintura: {label}')
+                    
+                    ax.plot(dados_medidas["Data"], dados_medidas["Cintura"], 
+                           marker="o", label="Cintura", color='#E74C3C',
+                           linewidth=2, zorder=5)
+                    
+                    ax.plot(dados_medidas["Data"], dados_medidas["Quadril"], 
+                           marker="o", label="Quadril", color='#8E44AD',
+                           linewidth=2, zorder=5)
+                    
+                    for x, y in zip(dados_medidas["Data"], dados_medidas["Cintura"]):
+                        ax.annotate(f'{y:.1f}', 
+                                  (x, y), 
+                                  textcoords="offset points", 
+                                  xytext=(0,10), 
+                                  ha='center',
+                                  fontsize=9,
+                                  zorder=6)
+                    
+                    for x, y in zip(dados_medidas["Data"], dados_medidas["Quadril"]):
+                        ax.annotate(f'{y:.1f}', 
+                                  (x, y), 
+                                  textcoords="offset points", 
+                                  xytext=(0,-15), 
+                                  ha='center',
+                                  fontsize=9,
+                                  zorder=6)
+                    
+                    ax.set_title(f"Medidas Corporais com Referências OMS ({sexo_atual})", 
+                               pad=20, fontsize=14)
+                    ax.set_xlabel("Data", fontsize=12)
+                    ax.set_ylabel("Centímetros", fontsize=12)
+                    ax.grid(True, alpha=0.3, zorder=1)
+                    
+                    ax.set_ylim(y_min, y_max)
+                    
+                    dates = dados_medidas["Data"]
+                    plt

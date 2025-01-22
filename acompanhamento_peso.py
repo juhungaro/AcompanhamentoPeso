@@ -116,44 +116,30 @@ if menu == "Inserir Dados":
         else:
             st.sidebar.error("Preencha todos os campos obrigatórios!")
 
+
+
 elif menu == "Visualizar Aluno":
     dados = load_data()
     if not dados.empty:
         alunos = dados["Nome"].unique()
-        aluno_selecionado = st.selectbox("Selecione um aluno", alunos)
-
-        if aluno_selecionado:
-           dados_aluno = dados[dados["Nome"] == aluno_selecionado].sort_values("Data")
-           
-           col1, col2 = st.columns([2, 1])
-           with col1:
-            aluno_selecionado = st.selectbox("Selecione um aluno", alunos)
+        aluno_selecionado = st.selectbox("Selecione um aluno", alunos, key="select_aluno_visualizar")
         
-               
         if aluno_selecionado:
-            if st.button("Apagar Registro do Aluno"):
-                confirma = st.checkbox("Confirmar exclusão")
-                if confirma:
-                    dados = dados[dados["Nome"] != aluno_selecionado]
-                    dados.to_csv("dados_alunos.csv", index=False)
-                    st.success(f"Registro de {aluno_selecionado} apagado com sucesso!")
-                    st.experimental_rerun()
-            
             dados_aluno = dados[dados["Nome"] == aluno_selecionado].sort_values("Data")
-
+            
             col1, col2, col3, col4 = st.columns(4)
             with col1:
-                st.metric("Peso Atual", f"{dados_aluno['Peso'].iloc[-1]:.1f} kg")
-                st.metric("Meta de Peso", f"{dados_aluno['Meta_Peso'].iloc[-1]:.1f} kg")
+                st.metric("Peso Atual", f"{dados_aluno['Peso'].iloc[-1]:.1f} kg", key="metric_peso_atual")
+                st.metric("Meta de Peso", f"{dados_aluno['Meta_Peso'].iloc[-1]:.1f} kg", key="metric_meta_peso")
             with col2:
                 imc_atual = dados_aluno['IMC'].iloc[-1]
-                st.metric("IMC Atual", f"{imc_atual:.1f}")
+                st.metric("IMC Atual", f"{imc_atual:.1f}", key="metric_imc_atual")
             with col3:
-                st.metric("Cintura", f"{dados_aluno['Cintura'].iloc[-1]:.1f} cm")
-                st.metric("Meta de Cintura", f"{dados_aluno['Meta_Cintura'].iloc[-1]:.1f} cm")
+                st.metric("Cintura", f"{dados_aluno['Cintura'].iloc[-1]:.1f} cm", key="metric_cintura_atual")
+                st.metric("Meta de Cintura", f"{dados_aluno['Meta_Cintura'].iloc[-1]:.1f} cm", key="metric_meta_cintura")
             with col4:
-                st.metric("% Gordura", f"{dados_aluno['Percentual_Gordura'].iloc[-1]:.1f}%")
-                st.metric("Meta % Gordura", f"{dados_aluno['Meta_Gordura'].iloc[-1]:.1f}%")
+                st.metric("% Gordura", f"{dados_aluno['Percentual_Gordura'].iloc[-1]:.1f}%", key="metric_gordura_atual")
+                st.metric("Meta % Gordura", f"{dados_aluno['Meta_Gordura'].iloc[-1]:.1f}%", key="metric_meta_gordura")
       
             
             st.subheader("Análise do IMC")
@@ -296,34 +282,31 @@ elif menu == "Visualizar Aluno":
 
 
                     # Novo gráfico para Gordura Visceral
-                    st.subheader("Gordura Visceral")
-                    fig_gv, ax_gv = plt.subplots(figsize=(10, 6))
-                    ax_gv.plot(dados_aluno["Data"], dados_aluno["Gordura_Visceral"], marker="o", linewidth=2, color='#2E86C1')
-                    
-                    # Adicionar faixas de referência para Gordura Visceral
-                    ax_gv.axhspan(0, 9, facecolor='green', alpha=0.3, label='Normal')
-                    ax_gv.axhspan(9, 14, facecolor='yellow', alpha=0.3, label='Alto')
-                    ax_gv.axhspan(14, 30, facecolor='red', alpha=0.3, label='Muito Alto')
-                    
-                    ax_gv.set_title("Progresso da Gordura Visceral", pad=20, fontsize=14)
-                    ax_gv.set_xlabel("Data", fontsize=12)
-                    ax_gv.set_ylabel("Nível de Gordura Visceral", fontsize=12)
-                    ax_gv.grid(True, alpha=0.3)
-                    ax_gv.legend()
-                    
-                    plt.xticks(dados_aluno["Data"], dados_aluno["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
-                    plt.tight_layout()
-                    st.pyplot(fig_gv)
-                    plt.close()
-                    
-                    st.markdown("""
-                    <small>
-                    * Referências de Gordura Visceral:<br>
-                    - Verde: Normal (1-9)<br>
-                    - Amarelo: Alto (10-14)<br>
-                    - Vermelho: Muito Alto (15+)
-                    </small>
-                    """, unsafe_allow_html=True)
-        
-        
-        
+            st.subheader("Gordura Visceral")
+            fig_gv, ax_gv = plt.subplots(figsize=(10, 6))
+            ax_gv.plot(dados_aluno["Data"], dados_aluno["Gordura_Visceral"], marker="o", linewidth=2, color='#2E86C1')
+            
+            # Adicionar faixas de referência para Gordura Visceral
+            ax_gv.axhspan(0, 9, facecolor='green', alpha=0.3, label='Normal')
+            ax_gv.axhspan(9, 14, facecolor='yellow', alpha=0.3, label='Alto')
+            ax_gv.axhspan(14, 30, facecolor='red', alpha=0.3, label='Muito Alto')
+            
+            ax_gv.set_title("Progresso da Gordura Visceral", pad=20, fontsize=14)
+            ax_gv.set_xlabel("Data", fontsize=12)
+            ax_gv.set_ylabel("Nível de Gordura Visceral", fontsize=12)
+            ax_gv.grid(True, alpha=0.3)
+            ax_gv.legend()
+            
+            plt.xticks(dados_aluno["Data"], dados_aluno["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
+            plt.tight_layout()
+            st.pyplot(fig_gv, key="plot_gordura_visceral")
+            plt.close()
+            
+            st.markdown("""
+            <small>
+            * Referências de Gordura Visceral:<br>
+            - Verde: Normal (1-9)<br>
+            - Amarelo: Alto (10-14)<br>
+            - Vermelho: Muito Alto (15+)
+            </small>
+            """, unsafe_allow_html=True)

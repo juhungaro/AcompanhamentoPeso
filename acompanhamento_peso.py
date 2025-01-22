@@ -10,16 +10,18 @@ st.set_page_config(page_title="Monitoramento Físico", layout="wide")
 def load_data():
     try:
         df = pd.read_csv("dados_alunos.csv")
+        # Converter colunas numéricas
         numeric_columns = ["Altura", "Peso", "Cintura", "Quadril", "IMC", "C/Q"]
         for col in numeric_columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
-            
+        
         # Converter a coluna de data, lidando com diferentes formatos
-        df["Data"] = pd.to_datetime(df["Data"]), format='mixed', dayfirst=True, errors='coerce')
+        df["Data"] = pd.to_datetime(df["Data"], format='mixed', dayfirst=True, errors='coerce')
         
         return df
     except FileNotFoundError:
         return pd.DataFrame(columns=["Nome", "Sexo", "Data", "Altura", "Peso", "Cintura", "Quadril", "IMC", "C/Q"])
+
 
 def calculate_imc(peso, altura):
     try:

@@ -203,7 +203,7 @@ elif menu == "Visualizar Aluno":
             
                 with tab2:
                 dados_medidas = dados_aluno.dropna(subset=['Cintura', 'Quadril'])
-                if not dados_medidas.empty:
+                    if not dados_medidas.empty:
                     sexo_atual = dados_aluno['Sexo'].iloc[0]
                     
                     # Gráfico da Cintura

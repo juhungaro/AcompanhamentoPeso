@@ -227,13 +227,12 @@ elif menu == "Visualizar Aluno":
             y_min_cintura = dados_medidas['Cintura'].min() * 0.9
             y_max_cintura = dados_medidas['Cintura'].max() * 1.1
                     
-                    for c_min, c_max, color, label in cintura_ranges:
-                        ax_cintura.axhspan(c_min, c_max, color=color, alpha=0.3, label=f'Cintura: {label}')
-                    
+            for c_min, c_max, color, label in cintura_ranges:
+                    ax_cintura.axhspan(c_min, c_max, color=color, alpha=0.3, label=f'Cintura: {label}')
                     ax_cintura.plot(dados_medidas["Data"], dados_medidas["Cintura"], marker="o", label="Cintura", color='#E74C3C', linewidth=2, zorder=5)
                     
-                    for x, y in zip(dados_medidas["Data"], dados_medidas["Cintura"]):
-                        ax_cintura.annotate(f'{y:.1f}', (x, y), textcoords="offset points", xytext=(0,10), ha='center', fontsize=9, zorder=6)
+            for x, y in zip(dados_medidas["Data"], dados_medidas["Cintura"]):
+                    ax_cintura.annotate(f'{y:.1f}', (x, y), textcoords="offset points", xytext=(0,10), ha='center', fontsize=9, zorder=6)
                     
                     ax_cintura.set_title(f"Medida da Cintura com Referências OMS ({sexo_atual})", pad=20, fontsize=14)
                     ax_cintura.set_xlabel("Data", fontsize=12)

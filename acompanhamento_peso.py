@@ -225,6 +225,7 @@ elif menu == "Visualizar Aluno":
                     plt.tight_layout()
                     st.pyplot(fig)
                     plt.close()
+
                     if sexo_atual == "Masculino":
                         st.markdown("""
                         <small>
@@ -239,3 +240,10 @@ elif menu == "Visualizar Aluno":
                         <small>
                         * Referências de Circunferência da Cintura (OMS) para mulheres:<br>
                         - Verde claro: Normal (< 80 cm)<br>
+                        - Amarelo claro: Risco Aumentado (80-88 cm)<br>
+                        - Vermelho claro: Risco Alto (> 88 cm)
+                        </small>
+                        """, unsafe_allow_html=True)
+
+                 
+                

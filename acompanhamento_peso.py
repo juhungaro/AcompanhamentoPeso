@@ -274,7 +274,7 @@ try:
 
                 with tab2:
             # Remover dados nulos de cintura e quadril
-            dados_medidas = dados_aluno.dropna(subset=['Cintura', 'Quadril'])
+                dados_medidas = dados_aluno.dropna(subset=['Cintura', 'Quadril'])
             
             if not dados_medidas.empty:
                 fig, ax = plt.subplots(figsize=(10, 6))

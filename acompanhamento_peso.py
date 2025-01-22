@@ -133,17 +133,24 @@ elif menu == "Visualizar Aluno":
             col1, col2, col3, col4 = st.columns(4)
             
             with col1:
-                st.metric("Peso Atual", f"{dados_aluno['Peso'].iloc[-1]:.1f} kg", key="metric_peso_atual")
-                st.metric("Meta de Peso", f"{dados_aluno['Meta_Peso'].iloc[-1]:.1f} kg", key="metric_meta_peso")
+                peso_atual = dados_aluno['Peso'].iloc[-1] if not dados_aluno.empty else None
+                meta_peso = dados_aluno['Meta_Peso'].iloc[-1] if not dados_aluno.empty else None
+                st.metric("Peso Atual", f"{peso_atual:.1f} kg" if peso_atual is not None else "N/A")
+                st.metric("Meta de Peso", f"{meta_peso:.1f} kg" if meta_peso is not None else "N/A")
             with col2:
-                imc_atual = dados_aluno['IMC'].iloc[-1]
-                st.metric("IMC Atual", f"{imc_atual:.1f}", key="metric_imc_atual")
+                imc_atual = dados_aluno['IMC'].iloc[-1] if not dados_aluno.empty else None
+                st.metric("IMC Atual", f"{imc_atual:.1f}" if imc_atual is not None else "N/A")
             with col3:
-                st.metric("Cintura", f"{dados_aluno['Cintura'].iloc[-1]:.1f} cm", key="metric_cintura_atual")
-                st.metric("Meta de Cintura", f"{dados_aluno['Meta_Cintura'].iloc[-1]:.1f} cm", key="metric_meta_cintura")
+                cintura_atual = dados_aluno['Cintura'].iloc[-1] if not dados_aluno.empty else None
+                meta_cintura = dados_aluno['Meta_Cintura'].iloc[-1] if not dados_aluno.empty else None
+                st.metric("Cintura", f"{cintura_atual:.1f} cm" if cintura_atual is not None else "N/A")
+                st.metric("Meta de Cintura", f"{meta_cintura:.1f} cm" if meta_cintura is not None else "N/A")
             with col4:
-                st.metric("% Gordura", f"{dados_aluno['Percentual_Gordura'].iloc[-1]:.1f}%", key="metric_gordura_atual")
-                st.metric("Meta % Gordura", f"{dados_aluno['Meta_Gordura'].iloc[-1]:.1f}%", key="metric_meta_gordura")
+                gordura_atual = dados_aluno['Percentual_Gordura'].iloc[-1] if not dados_aluno.empty else None
+                meta_gordura = dados_aluno['Meta_Gordura'].iloc[-1] if not dados_aluno.empty else None
+                st.metric("% Gordura", f"{gordura_atual:.1f}%" if gordura_atual is not None else "N/A")
+                st.metric("Meta % Gordura", f"{meta_gordura:.1f}%" if meta_gordura is not None else "N/A")
+
             
             st.subheader("Análise do IMC", key="subheader_analise_imc")
             classificacao, nivel = get_imc_classification(imc_atual)

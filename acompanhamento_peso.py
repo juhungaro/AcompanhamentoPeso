@@ -1,7 +1,3 @@
-Peço desculpas pelo erro. Vou reorganizar e corrigir o código inteiro, garantindo que não haja erros de sintaxe. Aqui está o código completo e organizado:
-
-Python
-Copiar
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt

@@ -285,7 +285,7 @@ elif menu == "Visualizar Aluno":
                         </small>
                         """, unsafe_allow_html=True)
                     else:
-                    st.warning("Não há dados de medidas suficientes para gerar os gráficos")
+                        st.warning("Não há dados de medidas suficientes para gerar os gráficos")
 
 
             elif tab_selecionada == "Gordura Visceral":

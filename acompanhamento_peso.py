@@ -130,7 +130,7 @@ elif menu == "Visualizar Aluno":
         if aluno_selecionado:
             dados_aluno = dados[dados["Nome"] == aluno_selecionado].sort_values("Data")
             
-            col1, col2, col3, col4 = st.columns(4, key="colunas_metricas_aluno")
+            col1, col2, col3, col4 = st.columns(4)
             
             with col1:
                 st.metric("Peso Atual", f"{dados_aluno['Peso'].iloc[-1]:.1f} kg", key="metric_peso_atual")

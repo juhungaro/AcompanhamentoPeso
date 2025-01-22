@@ -201,11 +201,13 @@ elif menu == "Visualizar Aluno":
                 else:
                     st.warning("Não há dados de peso para exibir no gráfico")
             
-            with tab2:
+                       with tab2:
                 dados_medidas = dados_aluno.dropna(subset=['Cintura', 'Quadril'])
                 if not dados_medidas.empty:
-                    fig, ax = plt.subplots(figsize=(10, 6))
                     sexo_atual = dados_aluno['Sexo'].iloc[0]
+                    
+                    # Gráfico da Cintura
+                    fig_cintura, ax_cintura = plt.subplots(figsize=(10, 6))
                     if sexo_atual == "Masculino":
                         cintura_ranges = [
                             (0, 94, '#d4edda', 'Normal'),
@@ -218,25 +220,48 @@ elif menu == "Visualizar Aluno":
                             (80, 88, '#fff3cd', 'Risco Aumentado'),
                             (88, 200, '#f8d7da', 'Risco Alto')
                         ]
-                    y_min = min(dados_medidas['Cintura'].min(), dados_medidas['Quadril'].min()) * 0.9
-                    y_max = max(dados_medidas['Cintura'].max(), dados_medidas['Quadril'].max()) * 1.1
+                    
+                    y_min_cintura = dados_medidas['Cintura'].min() * 0.9
+                    y_max_cintura = dados_medidas['Cintura'].max() * 1.1
+                    
                     for c_min, c_max, color, label in cintura_ranges:
-                        ax.axhspan(c_min, c_max, color=color, alpha=0.3, label=f'Cintura: {label}')
-                    ax.plot(dados_medidas["Data"], dados_medidas["Cintura"], marker="o", label="Cintura", color='#E74C3C', linewidth=2, zorder=5)
-                    ax.plot(dados_medidas["Data"], dados_medidas["Quadril"], marker="o", label="Quadril", color='#8E44AD', linewidth=2, zorder=5)
+                        ax_cintura.axhspan(c_min, c_max, color=color, alpha=0.3, label=f'Cintura: {label}')
+                    
+                    ax_cintura.plot(dados_medidas["Data"], dados_medidas["Cintura"], marker="o", label="Cintura", color='#E74C3C', linewidth=2, zorder=5)
+                    
                     for x, y in zip(dados_medidas["Data"], dados_medidas["Cintura"]):
-                        ax.annotate(f'{y:.1f}', (x, y), textcoords="offset points", xytext=(0,10), ha='center', fontsize=9, zorder=6)
-                    for x, y in zip(dados_medidas["Data"], dados_medidas["Quadril"]):
-                        ax.annotate(f'{y:.1f}', (x, y), textcoords="offset points", xytext=(0,-15), ha='center', fontsize=9, zorder=6)
-                    ax.set_title(f"Medidas Corporais com Referências OMS ({sexo_atual})", pad=20, fontsize=14)
-                    ax.set_xlabel("Data", fontsize=12)
-                    ax.set_ylabel("Centímetros", fontsize=12)
-                    ax.grid(True, alpha=0.3, zorder=1)
-                    ax.set_ylim(y_min, y_max)
+                        ax_cintura.annotate(f'{y:.1f}', (x, y), textcoords="offset points", xytext=(0,10), ha='center', fontsize=9, zorder=6)
+                    
+                    ax_cintura.set_title(f"Medida da Cintura com Referências OMS ({sexo_atual})", pad=20, fontsize=14)
+                    ax_cintura.set_xlabel("Data", fontsize=12)
+                    ax_cintura.set_ylabel("Centímetros", fontsize=12)
+                    ax_cintura.grid(True, alpha=0.3, zorder=1)
+                    ax_cintura.set_ylim(y_min_cintura, y_max_cintura)
                     plt.xticks(dados_medidas["Data"], dados_medidas["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
-                    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+                    ax_cintura.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
                     plt.tight_layout()
-                    st.pyplot(fig)
+                    st.pyplot(fig_cintura)
+                    plt.close()
+                    
+                    # Gráfico do Quadril
+                    fig_quadril, ax_quadril = plt.subplots(figsize=(10, 6))
+                    y_min_quadril = dados_medidas['Quadril'].min() * 0.9
+                    y_max_quadril = dados_medidas['Quadril'].max() * 1.1
+                    
+                    ax_quadril.plot(dados_medidas["Data"], dados_medidas["Quadril"], marker="o", label="Quadril", color='#8E44AD', linewidth=2, zorder=5)
+                    
+                    for x, y in zip(dados_medidas["Data"], dados_medidas["Quadril"]):
+                        ax_quadril.annotate(f'{y:.1f}', (x, y), textcoords="offset points", xytext=(0,10), ha='center', fontsize=9, zorder=6)
+                    
+                    ax_quadril.set_title(f"Medida do Quadril ({sexo_atual})", pad=20, fontsize=14)
+                    ax_quadril.set_xlabel("Data", fontsize=12)
+                    ax_quadril.set_ylabel("Centímetros", fontsize=12)
+                    ax_quadril.grid(True, alpha=0.3, zorder=1)
+                    ax_quadril.set_ylim(y_min_quadril, y_max_quadril)
+                    plt.xticks(dados_medidas["Data"], dados_medidas["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
+                    ax_quadril.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+                    plt.tight_layout()
+                    st.pyplot(fig_quadril)
                     plt.close()
 
                     if sexo_atual == "Masculino":
@@ -257,6 +282,5 @@ elif menu == "Visualizar Aluno":
                         - Vermelho claro: Risco Alto (> 88 cm)
                         </small>
                         """, unsafe_allow_html=True)
-
-                 
-                
+                else:
+                    st.warning("Não há dados de medidas suficientes para gerar os gráficos")

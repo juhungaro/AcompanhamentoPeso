@@ -224,7 +224,7 @@ elif menu == "Visualizar Aluno":
                             (80, 88, '#fff3cd', 'Risco Aumentado'),
                             (88, 200, '#f8d7da', 'Risco Alto')]
 
-                elif tab_selecionada == "Gordura Visceral":
+            elif tab_selecionada == "Gordura Visceral":
                 dados_gordura_visceral = dados_aluno.dropna(subset=['Gordura_Visceral'])
                 if not dados_gordura_visceral.empty:
                     fig_gv, ax_gv = plt.subplots(figsize=(10, 6))

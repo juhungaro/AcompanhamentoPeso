@@ -53,7 +53,7 @@ def get_imc_classification(imc):
         return "IMC inválido", "error"
 
 def criar_dashboard(dados):
-    st.header("Dashboard - Visão Geral dos Alunos", key="header_dashboard")
+    st.header("Dashboard - Visão Geral dos Alunos")
     total_alunos = dados['Nome'].nunique()
     st.metric("Total de Alunos", total_alunos, key="metric_total_alunos")
 
@@ -295,33 +295,38 @@ elif menu == "Visualizar Aluno":
 
 
              # Novo gráfico para Gordura Visceral
-            st.subheader("Gordura Visceral", key="subheader_gordura_visceral")
-            fig_gv, ax_gv = plt.subplots(figsize=(10, 6))
-            ax_gv.plot(dados_aluno["Data"], dados_aluno["Gordura_Visceral"], marker="o", linewidth=2, color='#2E86C1')
-            
-            ax_gv.axhspan(0, 9, facecolor='green', alpha=0.3, label='Normal')
-            ax_gv.axhspan(9, 14, facecolor='yellow', alpha=0.3, label='Alto')
-            ax_gv.axhspan(14, 30, facecolor='red', alpha=0.3, label='Muito Alto')
-            
-            ax_gv.set_title("Progresso da Gordura Visceral", pad=20, fontsize=14)
-            ax_gv.set_xlabel("Data", fontsize=12)
-            ax_gv.set_ylabel("Nível de Gordura Visceral", fontsize=12)
-            ax_gv.grid(True, alpha=0.3)
-            ax_gv.legend()
-            
-            plt.xticks(dados_aluno["Data"], dados_aluno["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
-            plt.tight_layout()
-            st.pyplot(fig_gv, key="plot_gordura_visceral")
-            plt.close()
-            
-            st.markdown("""
-            <small>
-            * Referências de Gordura Visceral:<br>
-            - Verde: Normal (1-9)<br>
-            - Amarelo: Alto (10-14)<br>
-            - Vermelho: Muito Alto (15+)
-            </small>
-            """, unsafe_allow_html=True, key="markdown_referencias_gordura_visceral")
+            st.subheader("Gordura Visceral")
+            dados_gordura_visceral = dados_aluno.dropna(subset=['Gordura_Visceral'])
+            if not dados_gordura_visceral.empty:
+                fig_gv, ax_gv = plt.subplots(figsize=(10, 6))
+                ax_gv.plot(dados_gordura_visceral["Data"], dados_gordura_visceral["Gordura_Visceral"], marker="o", linewidth=2, color='#2E86C1')
+                
+                ax_gv.axhspan(0, 9, facecolor='green', alpha=0.3, label='Normal')
+                ax_gv.axhspan(9, 14, facecolor='yellow', alpha=0.3, label='Alto')
+                ax_gv.axhspan(14, 30, facecolor='red', alpha=0.3, label='Muito Alto')
+                
+                ax_gv.set_title("Progresso da Gordura Visceral", pad=20, fontsize=14)
+                ax_gv.set_xlabel("Data", fontsize=12)
+                ax_gv.set_ylabel("Nível de Gordura Visceral", fontsize=12)
+                ax_gv.grid(True, alpha=0.3)
+                ax_gv.legend()
+                
+                plt.xticks(dados_gordura_visceral["Data"], dados_gordura_visceral["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
+                plt.tight_layout()
+                st.pyplot(fig_gv)
+                plt.close()
+                
+                st.markdown("""
+                <small>
+                * Referências de Gordura Visceral:<br>
+                - Verde: Normal (1-9)<br>
+                - Amarelo: Alto (10-14)<br>
+                - Vermelho: Muito Alto (15+)
+                </small>
+                """, unsafe_allow_html=True)
+else:
+    st.warning("Não há dados de Gordura Visceral para exibir no gráfico")
+
 
 elif menu == "Dashboard":
     dados = load_data()

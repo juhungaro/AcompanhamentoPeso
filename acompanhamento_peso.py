@@ -201,7 +201,7 @@ elif menu == "Visualizar Aluno":
                 else:
                     st.warning("Não há dados de peso para exibir no gráfico")
             
-                with tab2:
+            with tab2:
                 dados_medidas = dados_aluno.dropna(subset=['Cintura', 'Quadril'])
                     if not dados_medidas.empty:
                     sexo_atual = dados_aluno['Sexo'].iloc[0]

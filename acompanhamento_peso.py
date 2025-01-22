@@ -223,3 +223,78 @@ elif menu == "Visualizar Aluno":
                             (0, 80, '#d4edda', 'Normal'),
                             (80, 88, '#fff3cd', 'Risco Aumentado'),
                             (88, 200, '#f8d7da', 'Risco Alto')
+
+                elif tab_selecionada == "Gordura Visceral":
+                dados_gordura_visceral = dados_aluno.dropna(subset=['Gordura_Visceral'])
+                if not dados_gordura_visceral.empty:
+                    fig_gv, ax_gv = plt.subplots(figsize=(10, 6))
+                    ax_gv.plot(dados_gordura_visceral["Data"], dados_gordura_visceral["Gordura_Visceral"], marker="o", linewidth=2, color='#2E86C1')
+                    
+                    ax_gv.axhspan(0, 9, facecolor='green', alpha=0.3, label='Normal')
+                    ax_gv.axhspan(9, 14, facecolor='yellow', alpha=0.3, label='Alto')
+                    ax_gv.axhspan(14, 30, facecolor='red', alpha=0.3, label='Muito Alto')
+                    
+                    ax_gv.set_title("Progresso da Gordura Visceral", pad=20, fontsize=14)
+                    ax_gv.set_xlabel("Data", fontsize=12)
+                    ax_gv.set_ylabel("Nível de Gordura Visceral", fontsize=12)
+                    ax_gv.grid(True, alpha=0.3)
+                    ax_gv.legend()
+                    
+                    plt.xticks(dados_gordura_visceral["Data"], dados_gordura_visceral["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
+                    plt.tight_layout()
+                    st.pyplot(fig_gv)
+                    plt.close()
+                    
+                    st.markdown("""
+                    <small>
+                    * Referências de Gordura Visceral:<br>
+                    - Verde: Normal (1-9)<br>
+                    - Amarelo: Alto (10-14)<br>
+                    - Vermelho: Muito Alto (15+)
+                    </small>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.warning("Não há dados de Gordura Visceral para exibir no gráfico")
+
+            elif tab_selecionada == "Massa Muscular":
+                dados_massa_muscular = dados_aluno.dropna(subset=['Percentual_Massa_Magra'])
+                if not dados_massa_muscular.empty:
+                    fig_mm, ax_mm = plt.subplots(figsize=(10, 6))
+                    ax_mm.plot(dados_massa_muscular["Data"], dados_massa_muscular["Percentual_Massa_Magra"], marker="o", linewidth=2, color='#27AE60')
+                    
+                    ax_mm.set_title("Progresso da Massa Muscular", pad=20, fontsize=14)
+                    ax_mm.set_xlabel("Data", fontsize=12)
+                    ax_mm.set_ylabel("Percentual de Massa Muscular", fontsize=12)
+                    ax_mm.grid(True, alpha=0.3)
+                    
+                    plt.xticks(dados_massa_muscular["Data"], dados_massa_muscular["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
+                    plt.tight_layout()
+                    st.pyplot(fig_mm)
+                    plt.close()
+                else:
+                    st.warning("Não há dados de Massa Muscular para exibir no gráfico")
+
+            elif tab_selecionada == "Gordura Corporal":
+                dados_gordura_corporal = dados_aluno.dropna(subset=['Percentual_Gordura'])
+                if not dados_gordura_corporal.empty:
+                    fig_gc, ax_gc = plt.subplots(figsize=(10, 6))
+                    ax_gc.plot(dados_gordura_corporal["Data"], dados_gordura_corporal["Percentual_Gordura"], marker="o", linewidth=2, color='#E74C3C')
+                    
+                    ax_gc.set_title("Progresso da Gordura Corporal", pad=20, fontsize=14)
+                    ax_gc.set_xlabel("Data", fontsize=12)
+                    ax_gc.set_ylabel("Percentual de Gordura Corporal", fontsize=12)
+                    ax_gc.grid(True, alpha=0.3)
+                    
+                    plt.xticks(dados_gordura_corporal["Data"], dados_gordura_corporal["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
+                    plt.tight_layout()
+                    st.pyplot(fig_gc)
+                    plt.close()
+                else:
+                    st.warning("Não há dados de Gordura Corporal para exibir no gráfico")
+
+    else:
+        st.warning("Não há dados disponíveis para visualização.")
+
+elif menu == "Dashboard":
+    dados = load_data()
+    criar_dashboard(dados)

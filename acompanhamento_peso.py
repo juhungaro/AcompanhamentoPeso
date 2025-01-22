@@ -132,80 +132,269 @@ elif menu == "Visualizar Aluno":
             
             # Métricas principais
             col1, col2, col3, col4 = st.columns(4)
-            # ... (código para métricas permanece o mesmo)
-
-            # Análise do IMC
+            
+            
+            with col1:
+                peso_atual = dados_aluno['Peso'].iloc[-1] if not dados_aluno.empty else None
+                meta_peso = dados_aluno['Meta_Peso'].iloc[-1] if not dados_aluno.empty else None
+                st.metric("Peso Atual", f"{peso_atual:.1f} kg" if peso_atual is not None else "N/A")
+                st.metric("Meta de Peso", f"{meta_peso:.1f} kg" if meta_peso is not None else "N/A")
+            with col2:
+                imc_atual = dados_aluno['IMC'].iloc[-1] if not dados_aluno.empty else None
+                st.metric("IMC Atual", f"{imc_atual:.1f}" if imc_atual is not None else "N/A")
+            with col3:
+                cintura_atual = dados_aluno['Cintura'].iloc[-1] if not dados_aluno.empty else None
+                meta_cintura = dados_aluno['Meta_Cintura'].iloc[-1] if not dados_aluno.empty else None
+                st.metric("Cintura", f"{cintura_atual:.1f} cm" if cintura_atual is not None else "N/A")
+                st.metric("Meta de Cintura", f"{meta_cintura:.1f} cm" if meta_cintura is not None else "N/A")
+            with col4:
+                gordura_atual = dados_aluno['Percentual_Gordura'].iloc[-1] if not dados_aluno.empty else None
+                meta_gordura = dados_aluno['Meta_Gordura'].iloc[-1] if not dados_aluno.empty else None
+                st.metric("% Gordura", f"{gordura_atual:.1f}%" if gordura_atual is not None else "N/A")
+                st.metric("Meta % Gordura", f"{meta_gordura:.1f}%" if meta_gordura is not None else "N/A")
+            
             st.subheader("Análise do IMC")
-            # ... (código para análise do IMC permanece o mesmo)
-
+            if imc_atual is not None:
+                classificacao, nivel = get_imc_classification(imc_atual)
+                if nivel == "success":
+                    st.success(f"IMC: {imc_atual:.1f} - Classificação: {classificacao}")
+                elif nivel == "warning":
+                    st.warning(f"IMC: {imc_atual:.1f} - Classificação: {classificacao}")
+                else:
+                    st.error(f"IMC: {imc_atual:.1f} - Classificação: {classificacao}")
+            else:
+                st.info("Dados de IMC não disponíveis")
+            
             # Usando st.radio() para criar as "tabs"
             tab_selecionada = st.radio(
                 "Selecione o gráfico:",
                 ["Progresso do Peso", "Medidas Corporais", "Gordura Visceral", "Massa Muscular", "Gordura Corporal"]
             )
+
             
+                                       
             if tab_selecionada == "Progresso do Peso":
-                # Gráfico de Progresso do Peso
                 dados_peso = dados_aluno.dropna(subset=['Peso'])
                 if not dados_peso.empty:
                     fig, ax = plt.subplots(figsize=(10, 6))
-                    # ... (resto do código para o gráfico de peso)
+                    altura_atual = dados_aluno['Altura'].iloc[-1]
+                    imc_ranges = [
+                        (0, 18.5, '#fff3cd', 'Magreza'),
+                        (18.5, 24.9, '#d4edda', 'Normal'),
+                        (25, 29.9, '#fff3cd', 'Sobrepeso'),
+                        (30, 34.9, '#f8d7da', 'Obesidade I'),
+                        (35, 39.9, '#f8d7da', 'Obesidade II'),
+                        (40, 50, '#f8d7da', 'Obesidade III')
+                    ]
+                    y_min = dados_peso['Peso'].min() * 0.8
+                    y_max = dados_peso['Peso'].max() * 1.2
+                    for imc_min, imc_max, color, label in imc_ranges:
+                        peso_min = (imc_min * (altura_atual ** 2))
+                        peso_max = (imc_max * (altura_atual ** 2))
+                        ax.axhspan(peso_min, peso_max, color=color, alpha=0.3, label=f'Faixa {label}')
+                    ax.plot(dados_peso["Data"], dados_peso["Peso"], marker="o", linewidth=2, color='#2E86C1', label='Peso atual', zorder=5)
+                    for x, y in zip(dados_peso["Data"], dados_peso["Peso"]):
+                        ax.annotate(f'{y:.1f}', (x, y), textcoords="offset points", xytext=(0,10), ha='center', fontsize=9, zorder=6)
+                    ax.set_title("Progresso do Peso com Faixas de Referência IMC", pad=20, fontsize=14)
+                    ax.set_xlabel("Data", fontsize=12)
+                    ax.set_ylabel("Peso (kg)", fontsize=12)
+                    ax.grid(True, alpha=0.3, zorder=1)
+                    ax.set_ylim(y_min, y_max)
+                    plt.xticks(dados_peso["Data"], dados_peso["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
+                    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+                    plt.tight_layout()
                     st.pyplot(fig)
                     plt.close()
+                    st.markdown("""
+                    <small>
+                    * As faixas coloridas representam as classificações de IMC da OMS:<br>
+                    - Amarelo claro: Magreza (IMC < 18,5) e Sobrepeso (IMC 25-29,9)<br>
+                    - Verde claro: Peso Normal (IMC 18,5-24,9)<br>
+                    - Vermelho claro: Obesidade (IMC ≥ 30)
+                    </small>
+                    """, unsafe_allow_html=True)
                 else:
                     st.warning("Não há dados de peso para exibir no gráfico")
-
-            elif tab_selecionada == "Medidas Corporais":
-                # Gráficos de Cintura e Quadril
-                dados_medidas = dados_aluno.dropna(subset=['Cintura', 'Quadril'])
-                if not dados_medidas.empty:
-                    # Gráfico da Cintura
-                    fig_cintura, ax_cintura = plt.subplots(figsize=(10, 6))
-                    # ... (resto do código para o gráfico de cintura)
-                    st.pyplot(fig_cintura)
-                    plt.close()
-
-                    # Gráfico do Quadril
-                    fig_quadril, ax_quadril = plt.subplots(figsize=(10, 6))
-                    # ... (resto do código para o gráfico de quadril)
-                    st.pyplot(fig_quadril)
-                    plt.close()
-                else:
-                    st.warning("Não há dados de medidas suficientes para gerar os gráficos")
-
-            elif tab_selecionada == "Gordura Visceral":
-                # Gráfico para Gordura Visceral
+            
+             elif tab_selecionada == "Gordura Visceral":
+                # Novo gráfico para Gordura Visceral
                 dados_gordura_visceral = dados_aluno.dropna(subset=['Gordura_Visceral'])
                 if not dados_gordura_visceral.empty:
                     fig_gv, ax_gv = plt.subplots(figsize=(10, 6))
-                    # ... (resto do código para o gráfico de gordura visceral)
+                    ax_gv.plot(dados_gordura_visceral["Data"], dados_gordura_visceral["Gordura_Visceral"], marker="o", linewidth=2, color='#2E86C1')
+                    
+                    ax_gv.axhspan(0, 9, facecolor='green', alpha=0.3, label='Normal')
+                    ax_gv.axhspan(9, 14, facecolor='yellow', alpha=0.3, label='Alto')
+                    ax_gv.axhspan(14, 30, facecolor='red', alpha=0.3, label='Muito Alto')
+                    
+                    ax_gv.set_title("Progresso da Gordura Visceral", pad=20, fontsize=14)
+                    ax_gv.set_xlabel("Data", fontsize=12)
+                    ax_gv.set_ylabel("Nível de Gordura Visceral", fontsize=12)
+                    ax_gv.grid(True, alpha=0.3)
+                    ax_gv.legend()
+                    
+                    plt.xticks(dados_gordura_visceral["Data"], dados_gordura_visceral["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
+                    plt.tight_layout()
                     st.pyplot(fig_gv)
                     plt.close()
+                    
+                    st.markdown("""
+                    <small>
+                    * Referências de Gordura Visceral:<br>
+                    - Verde: Normal (1-9)<br>
+                    - Amarelo: Alto (10-14)<br>
+                    - Vermelho: Muito Alto (15+)
+                    </small>
+                    """, unsafe_allow_html=True)
                 else:
                     st.warning("Não há dados de Gordura Visceral para exibir no gráfico")
 
             elif tab_selecionada == "Massa Muscular":
-                # Gráfico para Massa Muscular
+                # Novo gráfico para Massa Muscular
                 dados_massa_muscular = dados_aluno.dropna(subset=['Percentual_Massa_Magra'])
                 if not dados_massa_muscular.empty:
                     fig_mm, ax_mm = plt.subplots(figsize=(10, 6))
-                    # ... (resto do código para o gráfico de massa muscular)
+                    ax_mm.plot(dados_massa_muscular["Data"], dados_massa_muscular["Percentual_Massa_Magra"], marker="o", linewidth=2, color='#27AE60')
+                    
+                    ax_mm.set_title("Progresso da Massa Muscular", pad=20, fontsize=14)
+                    ax_mm.set_xlabel("Data", fontsize=12)
+                    ax_mm.set_ylabel("Percentual de Massa Muscular", fontsize=12)
+                    ax_mm.grid(True, alpha=0.3)
+                    
+                    plt.xticks(dados_massa_muscular["Data"], dados_massa_muscular["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
+                    plt.tight_layout()
                     st.pyplot(fig_mm)
                     plt.close()
                 else:
                     st.warning("Não há dados de Massa Muscular para exibir no gráfico")
 
-            elif tab_selecionada == "Gordura Corporal":
-                # Gráfico para Gordura Corporal
+            elif tab_selecionada == "Gordura Visceral":
+                # Novo gráfico para Gordura Corporal
                 dados_gordura_corporal = dados_aluno.dropna(subset=['Percentual_Gordura'])
                 if not dados_gordura_corporal.empty:
                     fig_gc, ax_gc = plt.subplots(figsize=(10, 6))
-                    # ... (resto do código para o gráfico de gordura corporal)
+                    ax_gc.plot(dados_gordura_corporal["Data"], dados_gordura_corporal["Percentual_Gordura"], marker="o", linewidth=2, color='#E74C3C')
+                    
+                    ax_gc.set_title("Progresso da Gordura Corporal", pad=20, fontsize=14)
+                    ax_gc.set_xlabel("Data", fontsize=12)
+                    ax_gc.set_ylabel("Percentual de Gordura Corporal", fontsize=12)
+                    ax_gc.grid(True, alpha=0.3)
+                    
+                    plt.xticks(dados_gordura_corporal["Data"], dados_gordura_corporal["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
+                    plt.tight_layout()
                     st.pyplot(fig_gc)
                     plt.close()
                 else:
                     st.warning("Não há dados de Gordura Corporal para exibir no gráfico")
 
+            
+            
+            elif tab_selecionada == "Medidas Corporais":
+                dados_medidas = dados_aluno.dropna(subset=['Cintura', 'Quadril'])
+                if not dados_medidas.empty:
+                    sexo_atual = dados_aluno['Sexo'].iloc[0]
+                    
+                    # Gráfico da Cintura
+                    fig_cintura, ax_cintura = plt.subplots(figsize=(10, 6))
+                    if sexo_atual == "Masculino":
+                        cintura_ranges = [
+                            (0, 94, '#d4edda', 'Normal'),
+                            (94, 102, '#fff3cd', 'Risco Aumentado'),
+                            (102, 200, '#f8d7da', 'Risco Alto')
+                        ]
+                    else:
+                        cintura_ranges = [
+                            (0, 80, '#d4edda', 'Normal'),
+                            (80, 88, '#fff3cd', 'Risco Aumentado'),
+                            (88, 200, '#f8d7da', 'Risco Alto')
+                        ]
+                    
+                    y_min_cintura = dados_medidas['Cintura'].min() * 0.9
+                    y_max_cintura = dados_medidas['Cintura'].max() * 1.1
+                    
+                    for c_min, c_max, color, label in cintura_ranges:
+                        ax_cintura.axhspan(c_min, c_max, color=color, alpha=0.3, label=f'Cintura: {label}')
+                    
+                    ax_cintura.plot(dados_medidas["Data"], dados_medidas["Cintura"], marker="o", label="Cintura", color='#E74C3C', linewidth=2, zorder=5)
+                    
+                    for x, y in zip(dados_medidas["Data"], dados_medidas["Cintura"]):
+                        ax_cintura.annotate(f'{y:.1f}', (x, y), textcoords="offset points", xytext=(0,10), ha='center', fontsize=9, zorder=6)
+                    
+                    ax_cintura.set_title(f"Medida da Cintura com Referências OMS ({sexo_atual})", pad=20, fontsize=14)
+                    ax_cintura.set_xlabel("Data", fontsize=12)
+                    ax_cintura.set_ylabel("Centímetros", fontsize=12)
+                    ax_cintura.grid(True, alpha=0.3, zorder=1)
+                    ax_cintura.set_ylim(y_min_cintura, y_max_cintura)
+                    plt.xticks(dados_medidas["Data"], dados_medidas["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
+                    ax_cintura.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+                    plt.tight_layout()
+                    st.pyplot(fig_cintura)
+                    plt.close()
+                    
+                    # Gráfico do Quadril
+                    fig_quadril, ax_quadril = plt.subplots(figsize=(10, 6))
+                    y_min_quadril = dados_medidas['Quadril'].min() * 0.9
+                    y_max_quadril = dados_medidas['Quadril'].max() * 1.1
+                    
+                    ax_quadril.plot(dados_medidas["Data"], dados_medidas["Quadril"], marker="o", label="Quadril", color='#8E44AD', linewidth=2, zorder=5)
+                    
+                    for x, y in zip(dados_medidas["Data"], dados_medidas["Quadril"]):
+                        ax_quadril.annotate(f'{y:.1f}', (x, y), textcoords="offset points", xytext=(0,10), ha='center', fontsize=9, zorder=6)
+                    
+                    ax_quadril.set_title(f"Medida do Quadril ({sexo_atual})", pad=20, fontsize=14)
+                    ax_quadril.set_xlabel("Data", fontsize=12)
+                    ax_quadril.set_ylabel("Centímetros", fontsize=12)
+                    ax_quadril.grid(True, alpha=0.3, zorder=1)
+                    ax_quadril.set_ylim(y_min_quadril, y_max_quadril)
+                    plt.xticks(dados_medidas["Data"], dados_medidas["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
+                    ax_quadril.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+                    plt.tight_layout()
+                    st.pyplot(fig_quadril)
+                    plt.close()
+
+                    if sexo_atual == "Masculino":
+                        st.markdown("""
+                        <small>
+                        * Referências de Circunferência da Cintura (OMS) para homens:<br>
+                        - Verde claro: Normal (< 94 cm)<br>
+                        - Amarelo claro: Risco Aumentado (94-102 cm)<br>
+                        - Vermelho claro: Risco Alto (> 102 cm)
+                        </small>
+                        """, unsafe_allow_html=True)
+                    else:
+                        st.markdown("""
+                        <small>
+                        * Referências de Circunferência da Cintura (OMS) para mulheres:<br>
+                        - Verde claro: Normal (< 80 cm)<br>
+                        - Amarelo claro: Risco Aumentado (80-88 cm)<br>
+                        - Vermelho claro: Risco Alto (> 88 cm)
+                        </small>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.warning("Não há dados de medidas suficientes para gerar os gráficos")
+
+
+            elif tab_selecionada == "Gordura Visceral":
+                # Novo gráfico para Gordura Corporal
+                dados_gordura_corporal = dados_aluno.dropna(subset=['Percentual_Gordura'])
+                if not dados_gordura_corporal.empty:
+                    fig_gc, ax_gc = plt.subplots(figsize=(10, 6))
+                    ax_gc.plot(dados_gordura_corporal["Data"], dados_gordura_corporal["Percentual_Gordura"], marker="o", linewidth=2, color='#E74C3C')
+                    
+                    ax_gc.set_title("Progresso da Gordura Corporal", pad=20, fontsize=14)
+                    ax_gc.set_xlabel("Data", fontsize=12)
+                    ax_gc.set_ylabel("Percentual de Gordura Corporal", fontsize=12)
+                    ax_gc.grid(True, alpha=0.3)
+                    
+                    plt.xticks(dados_gordura_corporal["Data"], dados_gordura_corporal["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
+                    plt.tight_layout()
+                    st.pyplot(fig_gc)
+                    plt.close()
+                else:
+                    st.warning("Não há dados de Gordura Corporal para exibir no gráfico")
+
+    else:
+        st.warning("Não há dados disponíveis para visualização.")
     else:
         st.warning("Não há dados disponíveis para visualização.")
 

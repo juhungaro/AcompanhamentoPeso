@@ -150,7 +150,6 @@ elif menu == "Visualizar Aluno":
                 meta_gordura = dados_aluno['Meta_Gordura'].iloc[-1] if not dados_aluno.empty else None
                 st.metric("% Gordura", f"{gordura_atual:.1f}%" if gordura_atual is not None else "N/A")
                 st.metric("Meta % Gordura", f"{meta_gordura:.1f}%" if meta_gordura is not None else "N/A")
-
             
             st.subheader("Análise do IMC")
             if imc_atual is not None:
@@ -158,15 +157,13 @@ elif menu == "Visualizar Aluno":
                 if nivel == "success":
                     st.success(f"IMC: {imc_atual:.1f} - Classificação: {classificacao}")
                 elif nivel == "warning":
-                st.warning(f"IMC: {imc_atual:.1f} - Classificação: {classificacao}")
+                    st.warning(f"IMC: {imc_atual:.1f} - Classificação: {classificacao}")
                 else:
-                st.error(f"IMC: {imc_atual:.1f} - Classificação: {classificacao}")
-            
+                    st.error(f"IMC: {imc_atual:.1f} - Classificação: {classificacao}")
             else:
                 st.info("Dados de IMC não disponíveis")
 
-
-            
+                     
             with tab1:
                 # Código existente para o gráfico de progresso do peso
                 pass

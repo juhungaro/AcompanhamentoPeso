@@ -13,7 +13,10 @@ def load_data():
         numeric_columns = ["Altura", "Peso", "Cintura", "Quadril", "IMC", "C/Q"]
         for col in numeric_columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
-        df["Data"] = pd.to_datetime(df["Data"])
+            
+        # Converter a coluna de data, lidando com diferentes formatos
+        df["Data"] = pd.to_datetime(df["Data"]), format='mixed', dayfirst=True, errors='coerce')
+        
         return df
     except FileNotFoundError:
         return pd.DataFrame(columns=["Nome", "Sexo", "Data", "Altura", "Peso", "Cintura", "Quadril", "IMC", "C/Q"])
@@ -96,8 +99,13 @@ if menu == "Inserir Dados":
             imc = calculate_imc(peso, altura)
             rcq = calculate_rcq(cintura, quadril)
             novo_dado = pd.DataFrame({
-                "Nome": [nome], "Sexo": [sexo], "Data": [data], "Altura": [altura],
-                "Peso": [peso], "Cintura": [cintura], "Quadril": [quadril],
+                "Nome": [nome], 
+                "Sexo": [sexo], 
+                "Data": [data.strftime('%Y-%m-%d')],  # Formato ISO para consistência 
+                "Altura": [altura],
+                "Peso": [peso], 
+                "Cintura": [cintura], 
+                "Quadril": [quadril],
                 "IMC": [imc], "C/Q": [rcq]
             })
             dados = pd.concat([dados, novo_dado], ignore_index=True)
@@ -110,8 +118,11 @@ elif menu == "Visualizar Aluno":
     dados = load_data()
     if not dados.empty:
         alunos = dados["Nome"].unique()
-        aluno_selecionado = st.selectbox("Selecione um aluno", alunos)
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            aluno_selecionado = st.selectbox("Selecione um aluno", alunos)
         
+               
         if aluno_selecionado:
             if st.button("Apagar Registro do Aluno"):
                 confirma = st.checkbox("Confirmar exclusão")

@@ -395,8 +395,7 @@ elif menu == "Visualizar Aluno":
 
     else:
         st.warning("Não há dados disponíveis para visualização.")
-    else:
-        st.warning("Não há dados disponíveis para visualização.")
+    
 
 elif menu == "Dashboard":
     dados = load_data()

@@ -284,7 +284,7 @@ elif menu == "Visualizar Aluno":
                         - Vermelho claro: Risco Alto (> 88 cm)
                         </small>
                         """, unsafe_allow_html=True)
-                else:
+                    else:
                     st.warning("Não há dados de medidas suficientes para gerar os gráficos")
 
 

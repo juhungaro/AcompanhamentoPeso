@@ -222,7 +222,7 @@ elif menu == "Visualizar Aluno":
                         cintura_ranges = [
                             (0, 80, '#d4edda', 'Normal'),
                             (80, 88, '#fff3cd', 'Risco Aumentado'),
-                            (88, 200, '#f8d7da', 'Risco Alto')
+                            (88, 200, '#f8d7da', 'Risco Alto')]
 
                 elif tab_selecionada == "Gordura Visceral":
                 dados_gordura_visceral = dados_aluno.dropna(subset=['Gordura_Visceral'])

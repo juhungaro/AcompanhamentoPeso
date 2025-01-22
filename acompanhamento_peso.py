@@ -80,21 +80,6 @@ def criar_dashboard(dados):
     ax_peso.set_ylabel("Peso Médio (kg)")
     st.pyplot(fig_peso)
 
-    # Novos gráficos para as novas medidas
-    fig_gordura, ax_gordura = plt.subplots(figsize=(10, 6))
-    dados.groupby('Data')['Percentual_Gordura'].mean().plot(ax=ax_gordura)
-    ax_gordura.set_title("Evolução Média do Percentual de Gordura dos Alunos")
-    ax_gordura.set_xlabel("Data")
-    ax_gordura.set_ylabel("Percentual de Gordura Médio (%)")
-    st.pyplot(fig_gordura)
-
-    fig_visceral, ax_visceral = plt.subplots(figsize=(10, 6))
-    dados.groupby('Data')['Gordura_Visceral'].mean().plot(ax=ax_visceral)
-    ax_visceral.set_title("Evolução Média da Gordura Visceral dos Alunos")
-    ax_visceral.set_xlabel("Data")
-    ax_visceral.set_ylabel("Gordura Visceral Média")
-    st.pyplot(fig_visceral)
-
 # Interface principal
 st.title("Monitoramento de Peso e Medidas")
 st.markdown("### Acompanhe o progresso físico com base em dados de peso, medidas e parâmetros da OMS")
@@ -224,3 +209,22 @@ elif menu == "Visualizar Aluno":
                     - Verde claro: Peso Normal (IMC 18,5-24,9)<br>
                     - Vermelho claro: Obesidade (IMC ≥ 30)
                     </small>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.warning("Não há dados de peso para exibir no gráfico")
+            
+            with tab2:
+                dados_medidas = dados_aluno.dropna(subset=['Cintura', 'Quadril'])
+                if not dados_medidas.empty:
+                    sexo_atual = dados_aluno['Sexo'].iloc[0]
+                    
+                    # Gráfico da Cintura
+                    fig_cintura, ax_cintura = plt.subplots(figsize=(10, 6))
+                    if sexo_atual == "Masculino":
+                        cintura_ranges = [
+                            (0, 94, '#d4edda', 'Normal'),
+                            (94, 102, '#fff3cd', 'Risco Aumentado'),
+                            (102, 200, '#f8d7da', 'Risco Alto')
+                        ]
+                    else:
+                

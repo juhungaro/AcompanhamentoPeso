@@ -272,111 +272,111 @@ try:
                 else:
                     st.warning("Não há dados de peso para exibir no gráfico")
 
+                with tab2:
+            # Remover dados nulos de cintura e quadril
+            dados_medidas = dados_aluno.dropna(subset=['Cintura', 'Quadril'])
             
-                    with tab2:
-                # Remover dados nulos de cintura e quadril
-                dados_medidas = dados_aluno.dropna(subset=['Cintura', 'Quadril'])
+            if not dados_medidas.empty:
+                fig, ax = plt.subplots(figsize=(10, 6))
                 
-                if not dados_medidas.empty:
-                    fig, ax = plt.subplots(figsize=(10, 6))
-                    
-                    # Definir faixas de referência baseadas no sexo
-                    sexo_atual = dados_aluno['Sexo'].iloc[0]
-                    if sexo_atual == "Masculino":
-                        cintura_ranges = [
-                            (0, 94, '#d4edda', 'Normal'),
-                            (94, 102, '#fff3cd', 'Risco Aumentado'),
-                            (102, 200, '#f8d7da', 'Risco Alto')
-                        ]
-                    else:  # Feminino
-                        cintura_ranges = [
-                            (0, 80, '#d4edda', 'Normal'),
-                            (80, 88, '#fff3cd', 'Risco Aumentado'),
-                            (88, 200, '#f8d7da', 'Risco Alto')
-                        ]
-                    
-                    # Calcular limites do gráfico
-                    y_min = min(dados_medidas['Cintura'].min(), dados_medidas['Quadril'].min()) * 0.9
-                    y_max = max(dados_medidas['Cintura'].max(), dados_medidas['Quadril'].max()) * 1.1
-                    
-                    # Plotar áreas de referência para cintura
-                    for c_min, c_max, color, label in cintura_ranges:
-                        ax.axhspan(c_min, c_max, color=color, alpha=0.3, 
-                                 label=f'Cintura: {label}')
-                    
-                    # Plotar linhas de medidas
-                    ax.plot(dados_medidas["Data"], dados_medidas["Cintura"], 
-                           marker="o", label="Cintura", color='#E74C3C',
-                           linewidth=2, zorder=5)
-                    
-                    ax.plot(dados_medidas["Data"], dados_medidas["Quadril"], 
-                           marker="o", label="Quadril", color='#8E44AD',
-                           linewidth=2, zorder=5)
-                    
-                    # Adicionar valores nos pontos
-                    for x, y in zip(dados_medidas["Data"], dados_medidas["Cintura"]):
-                        ax.annotate(f'{y:.1f}', 
-                                  (x, y), 
-                                  textcoords="offset points", 
-                                  xytext=(0,10), 
-                                  ha='center',
-                                  fontsize=9,
-                                  zorder=6)
-                    
-                    for x, y in zip(dados_medidas["Data"], dados_medidas["Quadril"]):
-                        ax.annotate(f'{y:.1f}', 
-                                  (x, y), 
-                                  textcoords="offset points", 
-                                  xytext=(0,-15), 
-                                  ha='center',
-                                  fontsize=9,
-                                  zorder=6)
-                    
-                    # Configurações do gráfico
-                    ax.set_title(f"Medidas Corporais com Referências OMS ({sexo_atual})", 
-                               pad=20, fontsize=14)
-                    ax.set_xlabel("Data", fontsize=12)
-                    ax.set_ylabel("Centímetros", fontsize=12)
-                    ax.grid(True, alpha=0.3, zorder=1)
-                    
-                    # Ajustar limites do eixo y
-                    ax.set_ylim(y_min, y_max)
-                    
-                    # Ajustar datas no eixo x
-                    dates = dados_medidas["Data"]
-                    plt.xticks(dates, dates.dt.strftime('%d/%m/%Y'), rotation=45)
-                    
-                    # Adicionar legenda
-                    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-                    
-                    # Ajustar layout
-                    plt.tight_layout()
-                    
-                    # Exibir o gráfico
-                    st.pyplot(fig)
-                    plt.close()
-                    
-                    # Adicionar nota explicativa
-                    if sexo_atual == "Masculino":
-                        st.markdown("""
-                        <small>
-                        * Referências de Circunferência da Cintura (OMS) para homens:<br>
-                        - Verde claro: Normal (< 94 cm)<br>
-                        - Amarelo claro: Risco Aumentado (94-102 cm)<br>
-                        - Vermelho claro: Risco Alto (> 102 cm)
-                        </small>
-                        """, unsafe_allow_html=True)
-                    else:
-                        st.markdown("""
-                        <small>
-                        * Referências de Circunferência da Cintura (OMS) para mulheres:<br>
-                        - Verde claro: Normal (< 80 cm)<br>
-                        - Amarelo claro: Risco Aumentado (80-88 cm)<br>
-                        - Vermelho claro: Risco Alto (> 88 cm)
-                        </small>
-                        """, unsafe_allow_html=True)
+                # Definir faixas de referência baseadas no sexo
+                sexo_atual = dados_aluno['Sexo'].iloc[0]
+                if sexo_atual == "Masculino":
+                    cintura_ranges = [
+                        (0, 94, '#d4edda', 'Normal'),
+                        (94, 102, '#fff3cd', 'Risco Aumentado'),
+                        (102, 200, '#f8d7da', 'Risco Alto')
+                    ]
+                else:  # Feminino
+                    cintura_ranges = [
+                        (0, 80, '#d4edda', 'Normal'),
+                        (80, 88, '#fff3cd', 'Risco Aumentado'),
+                        (88, 200, '#f8d7da', 'Risco Alto')
+                    ]
+                
+                # Calcular limites do gráfico
+                y_min = min(dados_medidas['Cintura'].min(), dados_medidas['Quadril'].min()) * 0.9
+                y_max = max(dados_medidas['Cintura'].max(), dados_medidas['Quadril'].max()) * 1.1
+                
+                # Plotar áreas de referência para cintura
+                for c_min, c_max, color, label in cintura_ranges:
+                    ax.axhspan(c_min, c_max, color=color, alpha=0.3, 
+                             label=f'Cintura: {label}')
+                
+                # Plotar linhas de medidas
+                ax.plot(dados_medidas["Data"], dados_medidas["Cintura"], 
+                       marker="o", label="Cintura", color='#E74C3C',
+                       linewidth=2, zorder=5)
+                
+                ax.plot(dados_medidas["Data"], dados_medidas["Quadril"], 
+                       marker="o", label="Quadril", color='#8E44AD',
+                       linewidth=2, zorder=5)
+                
+                # Adicionar valores nos pontos
+                for x, y in zip(dados_medidas["Data"], dados_medidas["Cintura"]):
+                    ax.annotate(f'{y:.1f}', 
+                              (x, y), 
+                              textcoords="offset points", 
+                              xytext=(0,10), 
+                              ha='center',
+                              fontsize=9,
+                              zorder=6)
+                
+                for x, y in zip(dados_medidas["Data"], dados_medidas["Quadril"]):
+                    ax.annotate(f'{y:.1f}', 
+                              (x, y), 
+                              textcoords="offset points", 
+                              xytext=(0,-15), 
+                              ha='center',
+                              fontsize=9,
+                              zorder=6)
+                
+                # Configurações do gráfico
+                ax.set_title(f"Medidas Corporais com Referências OMS ({sexo_atual})", 
+                           pad=20, fontsize=14)
+                ax.set_xlabel("Data", fontsize=12)
+                ax.set_ylabel("Centímetros", fontsize=12)
+                ax.grid(True, alpha=0.3, zorder=1)
+                
+                # Ajustar limites do eixo y
+                ax.set_ylim(y_min, y_max)
+                
+                # Ajustar datas no eixo x
+                dates = dados_medidas["Data"]
+                plt.xticks(dates, dates.dt.strftime('%d/%m/%Y'), rotation=45)
+                
+                # Adicionar legenda
+                ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+                
+                # Ajustar layout
+                plt.tight_layout()
+                
+                # Exibir o gráfico
+                st.pyplot(fig)
+                plt.close()
+                
+                # Adicionar nota explicativa
+                if sexo_atual == "Masculino":
+                    st.markdown("""
+                    <small>
+                    * Referências de Circunferência da Cintura (OMS) para homens:<br>
+                    - Verde claro: Normal (< 94 cm)<br>
+                    - Amarelo claro: Risco Aumentado (94-102 cm)<br>
+                    - Vermelho claro: Risco Alto (> 102 cm)
+                    </small>
+                    """, unsafe_allow_html=True)
                 else:
-                    st.warning("Não há dados de medidas suficientes para gerar o gráfico")
+                    st.markdown("""
+                    <small>
+                    * Referências de Circunferência da Cintura (OMS) para mulheres:<br>
+                    - Verde claro: Normal (< 80 cm)<br>
+                    - Amarelo claro: Risco Aumentado (80-88 cm)<br>
+                    - Vermelho claro: Risco Alto (> 88 cm)
+                    </small>
+                    """, unsafe_allow_html=True)
+            else:
+                st.warning("Não há dados de medidas suficientes para gerar o gráfico")
+
 
             
             # Tabela de dados

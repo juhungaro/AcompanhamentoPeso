@@ -225,7 +225,7 @@ elif menu == "Visualizar Aluno":
                             (88, 200, '#f8d7da', 'Risco Alto')]
 
             y_min_cintura = dados_medidas['Cintura'].min() * 0.9
-                    y_max_cintura = dados_medidas['Cintura'].max() * 1.1
+            y_max_cintura = dados_medidas['Cintura'].max() * 1.1
                     
                     for c_min, c_max, color, label in cintura_ranges:
                         ax_cintura.axhspan(c_min, c_max, color=color, alpha=0.3, label=f'Cintura: {label}')

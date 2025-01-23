@@ -215,13 +215,66 @@ elif menu == "Visualizar Aluno":
                     st.markdown("""
                     <small>
                     * Referências de Gordura Visceral:<br>
-                    - Verde claro: Normal (1-9)<br>
-                    - Amarelo claro: Alto (10-14)<br>
-                    - Vermelho claro: Muito Alto (15+)
+                    - Verde: Normal (1-9)<br>
+                    - Amarelo: Alto (10-14)<br>
+                    - Vermelho: Muito Alto (15+)
                     </small>
                     """, unsafe_allow_html=True)
                 else:
                     st.warning("Não há dados de Gordura Visceral para exibir no gráfico")
+
+            elif tab_selecionada == "Gordura Corporal":
+                dados_gordura_corporal = dados_aluno.dropna(subset=['Percentual_Gordura'])
+                if not dados_gordura_corporal.empty:
+                    fig, ax = plt.subplots(figsize=(10, 6))
+                    sexo = dados_aluno['Sexo'].iloc[0]
+                    if sexo == "Masculino":
+                        gc_ranges = [
+                            (0, 6, '#f8d7da', 'Muito Baixo'),
+                            (6, 14, '#d4edda', 'Normal'),
+                            (14, 18, '#fff3cd', 'Moderadamente Alto'),
+                            (18, 25, '#f8d7da', 'Alto'),
+                            (25, 100, '#dc3545', 'Muito Alto')
+                        ]
+                    else:
+                        gc_ranges = [
+                            (0, 14, '#f8d7da', 'Muito Baixo'),
+                            (14, 21, '#d4edda', 'Normal'),
+                            (21, 25, '#fff3cd', 'Moderadamente Alto'),
+                            (25, 32, '#f8d7da', 'Alto'),
+                            (32, 100, '#dc3545', 'Muito Alto')
+                        ]
+                    plot_metric_with_ranges(dados_gordura_corporal, "Percentual_Gordura", "Progresso da Gordura Corporal", "Percentual de Gordura Corporal (%)", gc_ranges, ax)
+                    st.pyplot(fig)
+                    plt.close()
+                    
+                    if sexo == "Masculino":
+                        st.markdown("""
+                        <small>
+                        * Referências de Gordura Corporal para homens:<br>
+                        - Vermelho claro: Muito Baixo (< 6%)<br>
+                        - Verde: Normal (6-14%)<br>
+                        - Amarelo: Moderadamente Alto (14-18%)<br>
+                        - Vermelho claro: Alto (18-25%)<br>
+                        - Vermelho escuro: Muito Alto (> 25%)
+                        </small>
+                        """, unsafe_allow_html=True)
+                    else:
+                        st.markdown("""
+                        <small>
+                        * Referências de Gordura Corporal para mulheres:<br>
+                        - Vermelho claro: Muito Baixo (< 14%)<br>
+                        - Verde: Normal (14-21%)<br>
+                        - Amarelo: Moderadamente Alto (21-25%)<br>
+                        - Vermelho claro: Alto (25-32%)<br>
+                        - Vermelho escuro: Muito Alto (> 32%)
+                        </small>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.warning("Não há dados de Gordura Corporal para exibir no gráfico")
+
+    else:
+        st.warning("Não há dados disponíveis para visualização.")
             
             elif tab_selecionada == "Massa Muscular":
                 dados_massa_muscular = dados_aluno.dropna(subset=['Percentual_Massa_Magra'])

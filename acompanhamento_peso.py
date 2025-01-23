@@ -245,10 +245,27 @@ elif menu == "Visualizar Aluno":
                 else:
                     st.warning("Não há dados de Massa Muscular para exibir no gráfico")
             
+            
             elif tab_selecionada == "Gordura Corporal":
                 dados_gordura_corporal = dados_aluno.dropna(subset=['Percentual_Gordura'])
                 if not dados_gordura_corporal.empty:
                     fig_gc, ax_gc = plt.subplots(figsize=(10, 6))
-                    sexo = dados_aluno['Sexo'].iloc[0]
-                    scatter = ax_gc.scatter(dados_gordura_corporal["Data"], dados_gordura_corporal["Percentual_Gordura"], 
+                    ax_gc.plot(dados_gordura_corporal["Data"], dados_gordura_corporal["Percentual_Gordura"], marker="o", linewidth=2, color='#E74C3C')
+                    ax_gc.set_title("Progresso da Gordura Corporal", pad=20, fontsize=14)
+                    ax_gc.set_xlabel("Data", fontsize=12)
+                    ax_gc.set_ylabel("Percentual de Gordura Corporal", fontsize=12)
+                    ax_gc.grid(True, alpha=0.3)
+                    plt.xticks(dados_gordura_corporal["Data"], dados_gordura_corporal["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
+                    plt.tight_layout()
+                    st.pyplot(fig_gc)
+                    plt.close()
+                else:
+                    st.warning("Não há dados de Gordura Corporal para exibir no gráfico")
+
+    else:
+        st.warning("Não há dados disponíveis para visualização.")
+
+elif menu == "Dashboard":
+    dados = load_data()
+    criar_dashboard(dados)                                
                 

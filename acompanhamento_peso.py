@@ -111,7 +111,6 @@ st.markdown("### Acompanhe o progresso físico com base em dados de peso e parâ
 # Menu lateral
 menu = st.sidebar.selectbox("Escolha uma opção", ["Inserir Dados", "Visualizar Aluno", "Remover Aluno"])
 
-
 if menu == "Inserir Dados":
     st.sidebar.header("Inserir dados do aluno")
     with st.sidebar.form("entrada_dados"):
@@ -158,21 +157,6 @@ elif menu == "Visualizar Aluno":
             with col2:
                 imc_atual = dados_aluno['IMC'].iloc[-1] if not dados_aluno.empty else None
                 st.metric("IMC Atual", f"{imc_atual:.1f}" if imc_atual is not None else "N/A")
-
-elif menu == "Remover Aluno":
-    st.header("Remover Aluno")
-    dados = load_data()
-    if not dados.empty:
-        alunos = dados["Nome"].unique()
-        aluno_selecionado = st.selectbox("Selecione o aluno a ser removido", alunos)
-        
-        if st.button("Remover Aluno"):
-            if remover_aluno(aluno_selecionado):
-                st.success(f"Aluno {aluno_selecionado} removido com sucesso!")
-            else:
-                st.error("Não foi possível remover o aluno. Por favor, tente novamente.")
-    else:
-        st.warning("Não há alunos cadastrados para remover.")
             
             st.subheader("Análise do IMC")
             if imc_atual is not None:
@@ -241,7 +225,7 @@ elif menu == "Remover Aluno":
                 else:
                     st.warning("Não há dados de Gordura Visceral para exibir no gráfico")
             
-            elif tab_selecionada == "Gordura Corporal":
+                        elif tab_selecionada == "Gordura Corporal":
                 dados_gordura_corporal = dados_aluno.dropna(subset=['Percentual_Gordura'])
                 if not dados_gordura_corporal.empty:
                     fig, ax = plt.subplots(figsize=(10, 6))
@@ -291,7 +275,6 @@ elif menu == "Remover Aluno":
                 else:
                     st.warning("Não há dados de Gordura Corporal para exibir no gráfico")
             
-            
             elif tab_selecionada == "Massa Muscular":
                 dados_massa_muscular = dados_aluno.dropna(subset=['Percentual_Massa_Magra'])
                 if not dados_massa_muscular.empty:
@@ -338,5 +321,7 @@ elif menu == "Remover Aluno":
                 else:
                     st.warning("Não há dados de Massa Muscular para exibir no gráfico")
 
-    else:
-        st.warning("Não há dados disponíveis para visualização.")     
+        else:
+            st.warning("Não há dados disponíveis para visualização.")
+
+            

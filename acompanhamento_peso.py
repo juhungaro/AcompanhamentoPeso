@@ -42,6 +42,38 @@ def get_imc_classification(imc):
     except:
         return "IMC inválido", "error"
 
+def get_gordura_visceral_classification(gv):
+    if gv < 10:
+        return "Normal", "success"
+    elif gv < 15:
+        return "Alto", "warning"
+    else:
+        return "Muito Alto", "error"
+
+def get_gordura_corporal_classification(gc, sexo):
+    if sexo == "Masculino":
+        if gc < 6:
+            return "Muito baixo", "warning"
+        elif gc < 14:
+            return "Atlético", "success"
+        elif gc < 18:
+            return "Bom", "success"
+        elif gc < 25:
+            return "Normal", "success"
+        else:
+            return "Alto", "error"
+    else:  # Feminino
+        if gc < 14:
+            return "Muito baixo", "warning"
+        elif gc < 21:
+            return "Atlético", "success"
+        elif gc < 25:
+            return "Bom", "success"
+        elif gc < 32:
+            return "Normal", "success"
+        else:
+            return "Alto", "error"
+
 def criar_dashboard(dados):
     st.header("Dashboard - Visão Geral dos Alunos")
     total_alunos = dados['Nome'].nunique()
@@ -111,13 +143,16 @@ elif menu == "Visualizar Aluno":
         if aluno_selecionado:
             dados_aluno = dados[dados["Nome"] == aluno_selecionado].sort_values("Data")
             
-            col1, col2 = st.columns(2)
+            col1, col2, col3 = st.columns(3)
             with col1:
                 peso_atual = dados_aluno['Peso'].iloc[-1] if not dados_aluno.empty else None
                 st.metric("Peso Atual", f"{peso_atual:.1f} kg" if peso_atual is not None else "N/A")
             with col2:
                 imc_atual = dados_aluno['IMC'].iloc[-1] if not dados_aluno.empty else None
                 st.metric("IMC Atual", f"{imc_atual:.1f}" if imc_atual is not None else "N/A")
+            with col3:
+                gv_atual = dados_aluno['Gordura_Visceral'].iloc[-1] if not dados_aluno.empty else None
+                st.metric("Gordura Visceral", f"{gv_atual:.1f}" if gv_atual is not None else "N/A")
             
             st.subheader("Análise do IMC")
             if imc_atual is not None:
@@ -137,18 +172,30 @@ elif menu == "Visualizar Aluno":
             )
             
             if tab_selecionada == "Progresso do Peso":
-                dados_peso = dados_aluno.dropna(subset=['Peso'])
+                dados_peso = dados_aluno.dropna(subset=['Peso', 'IMC'])
                 if not dados_peso.empty:
                     fig, ax = plt.subplots(figsize=(10, 6))
-                    ax.plot(dados_peso["Data"], dados_peso["Peso"], marker="o", linewidth=2, color='#2E86C1', label='Peso atual')
-                    ax.set_title("Progresso do Peso", pad=20, fontsize=14)
+                    scatter = ax.scatter(dados_peso["Data"], dados_peso["Peso"], c=dados_peso["IMC"], cmap='RdYlGn_r', s=50)
+                    ax.plot(dados_peso["Data"], dados_peso["Peso"], linestyle='--', color='gray')
+                    ax.set_title("Progresso do Peso e IMC", pad=20, fontsize=14)
                     ax.set_xlabel("Data", fontsize=12)
                     ax.set_ylabel("Peso (kg)", fontsize=12)
                     ax.grid(True, alpha=0.3)
+                    plt.colorbar(scatter, label='IMC')
                     plt.xticks(dados_peso["Data"], dados_peso["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
                     plt.tight_layout()
                     st.pyplot(fig)
                     plt.close()
+                    
+                    st.markdown("""
+                    **Recomendações da OMS para IMC:**
+                    - Abaixo de 18.5: Magreza
+                    - 18.5 a 24.9: Peso normal
+                    - 25.0 a 29.9: Sobrepeso
+                    - 30.0 a 34.9: Obesidade grau I
+                    - 35.0 a 39.9: Obesidade grau II
+                    - 40.0 ou mais: Obesidade grau III
+                    """)
                 else:
                     st.warning("Não há dados de peso para exibir no gráfico")
             
@@ -156,15 +203,29 @@ elif menu == "Visualizar Aluno":
                 dados_gordura_visceral = dados_aluno.dropna(subset=['Gordura_Visceral'])
                 if not dados_gordura_visceral.empty:
                     fig_gv, ax_gv = plt.subplots(figsize=(10, 6))
-                    ax_gv.plot(dados_gordura_visceral["Data"], dados_gordura_visceral["Gordura_Visceral"], marker="o", linewidth=2, color='#2E86C1')
+                    scatter = ax_gv.scatter(dados_gordura_visceral["Data"], dados_gordura_visceral["Gordura_Visceral"], 
+                                            c=dados_gordura_visceral["Gordura_Visceral"], cmap='RdYlGn_r', s=50)
+                    ax_gv.plot(dados_gordura_visceral["Data"], dados_gordura_visceral["Gordura_Visceral"], linestyle='--', color='gray')
+                    ax_gv.axhspan(0, 9, facecolor='green', alpha=0.1, label='Normal')
+                    ax_gv.axhspan(9, 14, facecolor='yellow', alpha=0.1, label='Alto')
+                    ax_gv.axhspan(14, dados_gordura_visceral["Gordura_Visceral"].max(), facecolor='red', alpha=0.1, label='Muito Alto')
                     ax_gv.set_title("Progresso da Gordura Visceral", pad=20, fontsize=14)
                     ax_gv.set_xlabel("Data", fontsize=12)
                     ax_gv.set_ylabel("Nível de Gordura Visceral", fontsize=12)
                     ax_gv.grid(True, alpha=0.3)
+                    ax_gv.legend()
+                    plt.colorbar(scatter, label='Gordura Visceral')
                     plt.xticks(dados_gordura_visceral["Data"], dados_gordura_visceral["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
                     plt.tight_layout()
                     st.pyplot(fig_gv)
                     plt.close()
+                    
+                    st.markdown("""
+                    **Recomendações para Gordura Visceral:**
+                    - 1 a 9: Normal
+                    - 10 a 14: Alto
+                    - 15 ou mais: Muito Alto
+                    """)
                 else:
                     st.warning("Não há dados de Gordura Visceral para exibir no gráfico")
             
@@ -188,21 +249,6 @@ elif menu == "Visualizar Aluno":
                 dados_gordura_corporal = dados_aluno.dropna(subset=['Percentual_Gordura'])
                 if not dados_gordura_corporal.empty:
                     fig_gc, ax_gc = plt.subplots(figsize=(10, 6))
-                    ax_gc.plot(dados_gordura_corporal["Data"], dados_gordura_corporal["Percentual_Gordura"], marker="o", linewidth=2, color='#E74C3C')
-                    ax_gc.set_title("Progresso da Gordura Corporal", pad=20, fontsize=14)
-                    ax_gc.set_xlabel("Data", fontsize=12)
-                    ax_gc.set_ylabel("Percentual de Gordura Corporal", fontsize=12)
-                    ax_gc.grid(True, alpha=0.3)
-                    plt.xticks(dados_gordura_corporal["Data"], dados_gordura_corporal["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
-                    plt.tight_layout()
-                    st.pyplot(fig_gc)
-                    plt.close()
-                else:
-                    st.warning("Não há dados de Gordura Corporal para exibir no gráfico")
-
-    else:
-        st.warning("Não há dados disponíveis para visualização.")
-
-elif menu == "Dashboard":
-    dados = load_data()
-    criar_dashboard(dados)
+                    sexo = dados_aluno['Sexo'].iloc[0]
+                    scatter = ax_gc.scatter(dados_gordura_corporal["Data"], dados_gordura_corporal["Percentual_Gordura"], 
+                

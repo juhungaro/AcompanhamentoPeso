@@ -360,7 +360,7 @@ elif tab_selecionada == "Gordura Corporal":
 else:
     st.warning("Não há dados disponíveis para visualização.")
     
-    if menu == "Dashboard":
+elif menu == "Dashboard":
     dados = load_data()
     criar_dashboard(dados)
 

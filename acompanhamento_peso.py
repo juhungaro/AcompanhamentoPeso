@@ -142,13 +142,13 @@ elif menu == "Visualizar Aluno":
         if aluno_selecionado:
             dados_aluno = dados[dados["Nome"] == aluno_selecionado].sort_values("Data")
             
-            col1, col2 = st.columns(2)
-            with col1:
-                peso_atual = dados_aluno['Peso'].iloc[-1] if not dados_aluno.empty else None
-                st.metric("Peso Atual", f"{peso_atual:.1f} kg" if peso_atual is not None else "N/A")
-            with col2:
-                imc_atual = dados_aluno['IMC'].iloc[-1] if not dados_aluno.empty else None
-                st.metric("IMC Atual", f"{imc_atual:.1f}" if imc_atual is not None else "N/A")
+            #col1, col2 = st.columns(2)
+            #with col1:
+                #peso_atual = dados_aluno['Peso'].iloc[-1] if not dados_aluno.empty else None
+                #st.metric("Peso Atual", f"{peso_atual:.1f} kg" if peso_atual is not None else "N/A")
+            #with col2:
+                #imc_atual = dados_aluno['IMC'].iloc[-1] if not dados_aluno.empty else None
+                #st.metric("IMC Atual", f"{imc_atual:.1f}" if imc_atual is not None else "N/A")
             
             st.subheader("Análise do IMC")
             if imc_atual is not None:

@@ -202,30 +202,24 @@ elif menu == "Visualizar Aluno":
             elif tab_selecionada == "Gordura Visceral":
                 dados_gordura_visceral = dados_aluno.dropna(subset=['Gordura_Visceral'])
                 if not dados_gordura_visceral.empty:
-                    fig_gv, ax_gv = plt.subplots(figsize=(10, 6))
-                    scatter = ax_gv.scatter(dados_gordura_visceral["Data"], dados_gordura_visceral["Gordura_Visceral"], 
-                                            c=dados_gordura_visceral["Gordura_Visceral"], cmap='RdYlGn_r', s=50)
-                    ax_gv.plot(dados_gordura_visceral["Data"], dados_gordura_visceral["Gordura_Visceral"], linestyle='--', color='gray')
-                    ax_gv.axhspan(0, 9, facecolor='green', alpha=0.1, label='Normal')
-                    ax_gv.axhspan(9, 14, facecolor='yellow', alpha=0.1, label='Alto')
-                    ax_gv.axhspan(14, dados_gordura_visceral["Gordura_Visceral"].max(), facecolor='red', alpha=0.1, label='Muito Alto')
-                    ax_gv.set_title("Progresso da Gordura Visceral", pad=20, fontsize=14)
-                    ax_gv.set_xlabel("Data", fontsize=12)
-                    ax_gv.set_ylabel("Nível de Gordura Visceral", fontsize=12)
-                    ax_gv.grid(True, alpha=0.3)
-                    ax_gv.legend()
-                    plt.colorbar(scatter, label='Gordura Visceral')
-                    plt.xticks(dados_gordura_visceral["Data"], dados_gordura_visceral["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
-                    plt.tight_layout()
-                    st.pyplot(fig_gv)
+                    fig, ax = plt.subplots(figsize=(10, 6))
+                    gv_ranges = [
+                        (0, 9, '#d4edda', 'Normal'),
+                        (9, 14, '#fff3cd', 'Alto'),
+                        (14, 30, '#f8d7da', 'Muito Alto')
+                    ]
+                    plot_metric_with_ranges(dados_gordura_visceral, "Gordura_Visceral", "Progresso da Gordura Visceral", "Nível de Gordura Visceral", gv_ranges, ax)
+                    st.pyplot(fig)
                     plt.close()
                     
                     st.markdown("""
-                    **Recomendações para Gordura Visceral:**
-                    - 1 a 9: Normal
-                    - 10 a 14: Alto
-                    - 15 ou mais: Muito Alto
-                    """)
+                    <small>
+                    * Referências de Gordura Visceral:<br>
+                    - Verde claro: Normal (1-9)<br>
+                    - Amarelo claro: Alto (10-14)<br>
+                    - Vermelho claro: Muito Alto (15+)
+                    </small>
+                    """, unsafe_allow_html=True)
                 else:
                     st.warning("Não há dados de Gordura Visceral para exibir no gráfico")
             
@@ -249,22 +243,49 @@ elif menu == "Visualizar Aluno":
             elif tab_selecionada == "Gordura Corporal":
                 dados_gordura_corporal = dados_aluno.dropna(subset=['Percentual_Gordura'])
                 if not dados_gordura_corporal.empty:
-                    fig_gc, ax_gc = plt.subplots(figsize=(10, 6))
-                    ax_gc.plot(dados_gordura_corporal["Data"], dados_gordura_corporal["Percentual_Gordura"], marker="o", linewidth=2, color='#E74C3C')
-                    ax_gc.set_title("Progresso da Gordura Corporal", pad=20, fontsize=14)
-                    ax_gc.set_xlabel("Data", fontsize=12)
-                    ax_gc.set_ylabel("Percentual de Gordura Corporal", fontsize=12)
-                    ax_gc.grid(True, alpha=0.3)
-                    plt.xticks(dados_gordura_corporal["Data"], dados_gordura_corporal["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
-                    plt.tight_layout()
-                    st.pyplot(fig_gc)
+                    fig, ax = plt.subplots(figsize=(10, 6))
+                    sexo = dados_aluno['Sexo'].iloc[0]
+                    if sexo == "Masculino":
+                        gc_ranges = [
+                            (0, 10, '#f8d7da', 'Muito Baixo'),
+                            (10, 20, '#d4edda', 'Normal'),
+                            (20, 25, '#fff3cd', 'Elevado'),
+                            (25, 100, '#f8d7da', 'Muito Elevado')
+                        ]
+                    else:  # Feminino
+                        gc_ranges = [
+                            (0, 18, '#f8d7da', 'Muito Baixo'),
+                            (18, 28, '#d4edda', 'Normal'),
+                            (28, 35, '#fff3cd', 'Elevado'),
+                            (35, 100, '#f8d7da', 'Muito Elevado')
+                        ]
+                    plot_metric_with_ranges(dados_gordura_corporal, "Percentual_Gordura", "Progresso da Gordura Corporal", "Percentual de Gordura Corporal (%)", gc_ranges, ax)
+                    st.pyplot(fig)
                     plt.close()
+                    
+                    if sexo == "Masculino":
+                        st.markdown("""
+                        <small>
+                        * Referências de Gordura Corporal para homens:<br>
+                        - Vermelho claro: Muito Baixo (< 10%) ou Muito Elevado (> 25%)<br>
+                        - Verde claro: Normal (10-20%)<br>
+                        - Amarelo claro: Elevado (20-25%)
+                        </small>
+                        """, unsafe_allow_html=True)
+                    else:
+                        st.markdown("""
+                        <small>
+                        * Referências de Gordura Corporal para mulheres:<br>
+                        - Vermelho claro: Muito Baixo (< 18%) ou Muito Elevado (> 35%)<br>
+                        - Verde claro: Normal (18-28%)<br>
+                        - Amarelo claro: Elevado (28-35%)
+                        </small>
+                        """, unsafe_allow_html=True)
+                        
                 else:
                     st.warning("Não há dados de Gordura Corporal para exibir no gráfico")
 
-    else:
-        st.warning("Não há dados disponíveis para visualização.")
-
+    
 elif menu == "Dashboard":
     dados = load_data()
     criar_dashboard(dados)                                

@@ -74,35 +74,34 @@ def get_gordura_corporal_classification(gc, sexo):
         else:
             return "Alto", "error"
 
-def criar_dashboard(dados):
-    st.header("Dashboard - Visão Geral dos Alunos")
-    total_alunos = dados['Nome'].nunique()
-    st.metric("Total de Alunos", total_alunos)
-
-    fig_imc, ax_imc = plt.subplots(figsize=(10, 6))
-    dados.groupby('Nome')['IMC'].last().hist(bins=20, ax=ax_imc)
-    ax_imc.set_title("Distribuição do IMC dos Alunos")
-    ax_imc.set_xlabel("IMC")
-    ax_imc.set_ylabel("Número de Alunos")
-    st.pyplot(fig_imc)
-
-    dados_recentes = dados.sort_values('Data').groupby('Nome').last().reset_index()
-    st.subheader("Resumo dos Dados Mais Recentes")
-    st.dataframe(dados_recentes[['Nome', 'Data', 'Peso', 'Altura', 'IMC']])
-
-    fig_peso, ax_peso = plt.subplots(figsize=(10, 6))
-    dados.groupby('Data')['Peso'].mean().plot(ax=ax_peso)
-    ax_peso.set_title("Evolução Média do Peso dos Alunos")
-    ax_peso.set_xlabel("Data")
-    ax_peso.set_ylabel("Peso Médio (kg)")
-    st.pyplot(fig_peso)
+def plot_metric_with_ranges(data, column, title, ylabel, ranges, ax):
+    ax.plot(data["Data"], data[column], marker="o", linewidth=2, color='#2E86C1', zorder=5)
+    
+    y_min = data[column].min() * 0.9
+    y_max = data[column].max() * 1.1
+    
+    for min_val, max_val, color, label in ranges:
+        ax.axhspan(min_val, max_val, facecolor=color, alpha=0.3, label=label)
+    
+    ax.set_title(title, pad=20, fontsize=14)
+    ax.set_xlabel("Data", fontsize=12)
+    ax.set_ylabel(ylabel, fontsize=12)
+    ax.grid(True, alpha=0.3, zorder=1)
+    ax.set_ylim(y_min, y_max)
+    
+    for x, y in zip(data["Data"], data[column]):
+        ax.annotate(f'{y:.1f}', (x, y), textcoords="offset points", xytext=(0,10), ha='center', fontsize=9, zorder=6)
+    
+    plt.xticks(data["Data"], data["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout()
 
 # Interface principal
 st.title("Monitoramento de Peso e Medidas")
 st.markdown("### Acompanhe o progresso físico com base em dados de peso e parâmetros da OMS")
 
 # Menu lateral
-menu = st.sidebar.selectbox("Escolha uma opção", ["Inserir Dados", "Visualizar Aluno", "Dashboard"])
+menu = st.sidebar.selectbox("Escolha uma opção", ["Inserir Dados", "Visualizar Aluno"])
 
 if menu == "Inserir Dados":
     st.sidebar.header("Inserir dados do aluno")
@@ -165,7 +164,7 @@ elif menu == "Visualizar Aluno":
             
             tab_selecionada = st.radio(
                 "Selecione o gráfico:",
-                ["Progresso do Peso", "Gordura Visceral", "Gordura Corporal"]
+                ["Progresso do Peso", "Gordura Visceral", "Gordura Corporal", "Massa Muscular"]
             )
             
             if tab_selecionada == "Progresso do Peso":
@@ -267,56 +266,53 @@ elif menu == "Visualizar Aluno":
                         """, unsafe_allow_html=True)
                 else:
                     st.warning("Não há dados de Gordura Corporal para exibir no gráfico")
-
-        else:
-            st.warning("Não há dados disponíveis para visualização.")
-
-        if tab_selecionada == "Massa Muscular":
-            dados_massa_muscular = dados_aluno.dropna(subset=['Percentual_Massa_Magra'])
-            if not dados_massa_muscular.empty:
-                fig, ax = plt.subplots(figsize=(10, 6))
-                sexo = dados_aluno['Sexo'].iloc[0]
-                if sexo == "Masculino":
-                    mm_ranges = [
-                        (0, 33, '#f8d7da', 'Baixo'),
-                        (33, 39, '#fff3cd', 'Normal'),
-                        (39, 44, '#d4edda', 'Bom'),
-                        (44, 100, '#28a745', 'Excelente')
-                    ]
+            
+            
+            elif tab_selecionada == "Massa Muscular":
+                dados_massa_muscular = dados_aluno.dropna(subset=['Percentual_Massa_Magra'])
+                if not dados_massa_muscular.empty:
+                    fig, ax = plt.subplots(figsize=(10, 6))
+                    sexo = dados_aluno['Sexo'].iloc[0]
+                    if sexo == "Masculino":
+                        mm_ranges = [
+                            (0, 33, '#f8d7da', 'Baixo'),
+                            (33, 39, '#fff3cd', 'Normal'),
+                            (39, 44, '#d4edda', 'Bom'),
+                            (44, 100, '#28a745', 'Excelente')
+                        ]
+                    else:
+                        mm_ranges = [
+                            (0, 24, '#f8d7da', 'Baixo'),
+                            (24, 30, '#fff3cd', 'Normal'),
+                            (30, 35, '#d4edda', 'Bom'),
+                            (35, 100, '#28a745', 'Excelente')
+                        ]
+                    plot_metric_with_ranges(dados_massa_muscular, "Percentual_Massa_Magra", "Progresso da Massa Muscular", "Percentual de Massa Muscular (%)", mm_ranges, ax)
+                    st.pyplot(fig)
+                    plt.close()
+                    
+                    if sexo == "Masculino":
+                        st.markdown("""
+                        <small>
+                        * Referências de Massa Muscular para homens:<br>
+                        - Vermelho claro: Baixo (< 33%)<br>
+                        - Amarelo: Normal (33-39%)<br>
+                        - Verde claro: Bom (39-44%)<br>
+                        - Verde escuro: Excelente (> 44%)
+                        </small>
+                        """, unsafe_allow_html=True)
+                    else:
+                        st.markdown("""
+                        <small>
+                        * Referências de Massa Muscular para mulheres:<br>
+                        - Vermelho claro: Baixo (< 24%)<br>
+                        - Amarelo: Normal (24-30%)<br>
+                        - Verde claro: Bom (30-35%)<br>
+                        - Verde escuro: Excelente (> 35%)
+                        </small>
+                        """, unsafe_allow_html=True)
                 else:
-                    mm_ranges = [
-                        (0, 24, '#f8d7da', 'Baixo'),
-                        (24, 30, '#fff3cd', 'Normal'),
-                        (30, 35, '#d4edda', 'Bom'),
-                        (35, 100, '#28a745', 'Excelente')
-                    ]
-                plot_metric_with_ranges(dados_massa_muscular, "Percentual_Massa_Magra", "Progresso da Massa Muscular", "Percentual de Massa Muscular (%)", mm_ranges, ax)
-                st.pyplot(fig)
-                plt.close()
-                
-                if sexo == "Masculino":
-                    st.markdown("""
-                    <small>
-                    * Referências de Massa Muscular para homens:<br>
-                    - Vermelho claro: Baixo (< 33%)<br>
-                    - Amarelo: Normal (33-39%)<br>
-                    - Verde claro: Bom (39-44%)<br>
-                    - Verde escuro: Excelente (> 44%)
-                    </small>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.markdown("""
-                    <small>
-                    * Referências de Massa Muscular para mulheres:<br>
-                    - Vermelho claro: Baixo (< 24%)<br>
-                    - Amarelo: Normal (24-30%)<br>
-                    - Verde claro: Bom (30-35%)<br>
-                    - Verde escuro: Excelente (> 35%)
-                    </small>
-                    """, unsafe_allow_html=True)
-            else:
-                st.warning("Não há dados de Massa Muscular para exibir no gráfico")
+                    st.warning("Não há dados de Massa Muscular para exibir no gráfico")
 
-elif menu == "Dashboard":
-    dados = load_data()
-    criar_dashboard(dados)
+    else:
+        st.warning("Não há dados disponíveis para visualização.")     

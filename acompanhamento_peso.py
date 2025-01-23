@@ -96,12 +96,21 @@ def plot_metric_with_ranges(data, column, title, ylabel, ranges, ax):
     ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.tight_layout()
 
+def remover_aluno(nome):
+    dados = load_data()
+    if nome in dados['Nome'].values:
+        dados = dados[dados['Nome'] != nome]
+        dados.to_csv("dados_alunos.csv", index=False)
+        return True
+    return False
+
 # Interface principal
 st.title("Monitoramento de Peso e Medidas")
 st.markdown("### Acompanhe o progresso físico com base em dados de peso e parâmetros da OMS")
 
 # Menu lateral
-menu = st.sidebar.selectbox("Escolha uma opção", ["Inserir Dados", "Visualizar Aluno"])
+menu = st.sidebar.selectbox("Escolha uma opção", ["Inserir Dados", "Visualizar Aluno", "Remover Aluno"])
+
 
 if menu == "Inserir Dados":
     st.sidebar.header("Inserir dados do aluno")
@@ -149,6 +158,21 @@ elif menu == "Visualizar Aluno":
             with col2:
                 imc_atual = dados_aluno['IMC'].iloc[-1] if not dados_aluno.empty else None
                 st.metric("IMC Atual", f"{imc_atual:.1f}" if imc_atual is not None else "N/A")
+
+elif menu == "Remover Aluno":
+    st.header("Remover Aluno")
+    dados = load_data()
+    if not dados.empty:
+        alunos = dados["Nome"].unique()
+        aluno_selecionado = st.selectbox("Selecione o aluno a ser removido", alunos)
+        
+        if st.button("Remover Aluno"):
+            if remover_aluno(aluno_selecionado):
+                st.success(f"Aluno {aluno_selecionado} removido com sucesso!")
+            else:
+                st.error("Não foi possível remover o aluno. Por favor, tente novamente.")
+    else:
+        st.warning("Não há alunos cadastrados para remover.")
             
             st.subheader("Análise do IMC")
             if imc_atual is not None:

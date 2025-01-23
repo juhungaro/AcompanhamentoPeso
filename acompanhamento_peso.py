@@ -44,17 +44,17 @@ def plot_metric(dados, x_col, y_col, title, y_label, color, additional_styling=N
     if not dados.empty:
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.plot(dados[x_col], dados[y_col], marker="o", linewidth=2, color=color)
-
+        
         ax.set_title(title, pad=20, fontsize=14)
         ax.set_xlabel("Data", fontsize=12)
         ax.set_ylabel(y_label, fontsize=12)
         ax.grid(True, alpha=0.3)
-
+        
         plt.xticks(dados[x_col], dados[x_col].dt.strftime('%d/%m/%Y'), rotation=45)
-
+        
         if additional_styling:
             additional_styling(ax)
-
+        
         plt.tight_layout()
         st.pyplot(fig)
         plt.close()
@@ -65,27 +65,27 @@ def plot_metric(dados, x_col, y_col, title, y_label, color, additional_styling=N
 def criar_dashboard_aluno(dados_aluno):
     # Cabeçalho com informações do aluno
     col1, col2, col3 = st.columns(3)
-
+    
     with col1:
         ultima_medicao = dados_aluno.iloc[-1]
         st.subheader("Última medição")
         st.write(f"Data: {ultima_medicao['Data'].strftime('%d/%m/%Y')}")
         st.write(f"Peso: {ultima_medicao['Peso']:.1f} kg")
-
+        
         if not pd.isna(ultima_medicao['Altura']):
             imc = calcular_imc(ultima_medicao['Peso'], ultima_medicao['Altura'])
             classificacao, indicador = classificar_imc(imc)
             st.write(f"IMC: {imc:.1f}")
             st.write(f"Classificação: {classificacao} {indicador}")
-
+    
     with col2:
-        if len(dados_aluno) &gt;= 2:
+        if len(dados_aluno) >= 2:
             primeira_medicao = dados_aluno.iloc[0]
             diferenca_peso = ultima_medicao['Peso'] - primeira_medicao['Peso']
             st.subheader("Progresso")
             st.write(f"Peso inicial: {primeira_medicao['Peso']:.1f} kg")
             st.write(f"Variação de peso: {diferenca_peso:+.1f} kg")
-
+    
     with col3:
         if not pd.isna(ultima_medicao['Meta_Peso']):
             st.subheader("Meta")
@@ -98,7 +98,7 @@ def criar_dashboard_aluno(dados_aluno):
         "Selecione o gráfico:",
         ["Progresso do Peso", "Medidas Corporais", "Gordura Visceral", "Massa Muscular", "Gordura Corporal"]
     )
-
+    
     if tab_selecionada == "Progresso do Peso":
         plot_metric(dados_aluno, "Data", "Peso", "Progresso do Peso", "Peso (kg)", '#3498DB')
 
@@ -108,16 +108,16 @@ def criar_dashboard_aluno(dados_aluno):
             fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
             ax1.plot(dados_medidas["Data"], dados_medidas["Cintura"], marker="o", linewidth=2, color='#9B59B6')
             ax2.plot(dados_medidas["Data"], dados_medidas["Quadril"], marker="o", linewidth=2, color='#F1C40F')
-
+            
             ax1.set_title("Medida da Cintura")
             ax2.set_title("Medida do Quadril")
-
+            
             for ax in [ax1, ax2]:
                 ax.set_xlabel("Data")
                 ax.set_ylabel("Medida (cm)")
                 ax.grid(True, alpha=0.3)
                 ax.tick_params(axis='x', rotation=45)
-
+            
             plt.tight_layout()
             st.pyplot(fig)
             plt.close()
@@ -126,24 +126,24 @@ def criar_dashboard_aluno(dados_aluno):
 
     elif tab_selecionada == "Gordura Visceral":
         dados_gordura_visceral = dados_aluno.dropna(subset=['Gordura_Visceral'])
-
+        
         def style_gordura_visceral(ax):
             ax.axhspan(0, 9, facecolor='green', alpha=0.3, label='Normal')
             ax.axhspan(9, 14, facecolor='yellow', alpha=0.3, label='Alto')
             ax.axhspan(14, 30, facecolor='red', alpha=0.3, label='Muito Alto')
             ax.legend()
-
+        
         plot_metric(dados_gordura_visceral, "Data", "Gordura_Visceral", 
                     "Progresso da Gordura Visceral", "Nível de Gordura Visceral", 
                     '#2E86C1', additional_styling=style_gordura_visceral)
-
+        
         st.markdown("""
-        <small&gt;
-        * Referências de Gordura Visceral:<br&gt;
-        - Verde: Normal (1-9)<br&gt;
-        - Amarelo: Alto (10-14)<br&gt;
+        <small>
+        * Referências de Gordura Visceral:<br>
+        - Verde: Normal (1-9)<br>
+        - Amarelo: Alto (10-14)<br>
         - Vermelho: Muito Alto (15+)
-        </small&gt;
+        </small>
         """, unsafe_allow_html=True)
 
     elif tab_selecionada == "Massa Muscular":
@@ -159,16 +159,16 @@ def criar_dashboard_aluno(dados_aluno):
 # Função principal
 def main():
     st.title("Dashboard de Acompanhamento de Alunos")
-
+    
     menu = st.sidebar.selectbox("Menu", ["Visualizar Aluno", "Dashboard Geral"])
-
+    
     dados = load_data()
-
+    
     if menu == "Visualizar Aluno":
         if not dados.empty:
             alunos = dados["Nome"].unique()
             aluno_selecionado = st.selectbox("Selecione um aluno", alunos)
-
+            
             if aluno_selecionado:
                 dados_aluno = dados[dados["Nome"] == aluno_selecionado].sort_values("Data")
                 criar_dashboard_aluno(dados_aluno)
@@ -176,7 +176,7 @@ def main():
                 st.warning("Selecione um aluno para visualizar os dados.")
         else:
             st.warning("Não há dados disponíveis para visualização.")
-
+    
     elif menu == "Dashboard Geral":
         st.write("Dashboard Geral - Em desenvolvimento")
 

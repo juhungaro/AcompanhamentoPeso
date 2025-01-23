@@ -143,16 +143,13 @@ elif menu == "Visualizar Aluno":
         if aluno_selecionado:
             dados_aluno = dados[dados["Nome"] == aluno_selecionado].sort_values("Data")
             
-            col1, col2, col3 = st.columns(3)
+            col1, col2 = st.columns(2)
             with col1:
                 peso_atual = dados_aluno['Peso'].iloc[-1] if not dados_aluno.empty else None
                 st.metric("Peso Atual", f"{peso_atual:.1f} kg" if peso_atual is not None else "N/A")
             with col2:
                 imc_atual = dados_aluno['IMC'].iloc[-1] if not dados_aluno.empty else None
                 st.metric("IMC Atual", f"{imc_atual:.1f}" if imc_atual is not None else "N/A")
-            with col3:
-                gv_atual = dados_aluno['Gordura_Visceral'].iloc[-1] if not dados_aluno.empty else None
-                st.metric("Gordura Visceral", f"{gv_atual:.1f}" if gv_atual is not None else "N/A")
             
             st.subheader("Análise do IMC")
             if imc_atual is not None:
@@ -168,34 +165,32 @@ elif menu == "Visualizar Aluno":
             
             tab_selecionada = st.radio(
                 "Selecione o gráfico:",
-                ["Progresso do Peso", "Gordura Visceral", "Massa Muscular", "Gordura Corporal"]
+                ["Progresso do Peso", "Gordura Visceral", "Gordura Corporal"]
             )
             
             if tab_selecionada == "Progresso do Peso":
-                dados_peso = dados_aluno.dropna(subset=['Peso', 'IMC'])
+                dados_peso = dados_aluno.dropna(subset=['Peso'])
                 if not dados_peso.empty:
                     fig, ax = plt.subplots(figsize=(10, 6))
-                    scatter = ax.scatter(dados_peso["Data"], dados_peso["Peso"], c=dados_peso["IMC"], cmap='RdYlGn_r', s=50)
-                    ax.plot(dados_peso["Data"], dados_peso["Peso"], linestyle='--', color='gray')
-                    ax.set_title("Progresso do Peso e IMC", pad=20, fontsize=14)
-                    ax.set_xlabel("Data", fontsize=12)
-                    ax.set_ylabel("Peso (kg)", fontsize=12)
-                    ax.grid(True, alpha=0.3)
-                    plt.colorbar(scatter, label='IMC')
-                    plt.xticks(dados_peso["Data"], dados_peso["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
-                    plt.tight_layout()
+                    altura_atual = dados_aluno['Altura'].iloc[-1]
+                    imc_ranges = [
+                        (0, 18.5 * (altura_atual ** 2), '#fff3cd', 'Magreza'),
+                        (18.5 * (altura_atual ** 2), 24.9 * (altura_atual ** 2), '#d4edda', 'Normal'),
+                        (25 * (altura_atual ** 2), 29.9 * (altura_atual ** 2), '#fff3cd', 'Sobrepeso'),
+                        (30 * (altura_atual ** 2), 50 * (altura_atual ** 2), '#f8d7da', 'Obesidade')
+                    ]
+                    plot_metric_with_ranges(dados_peso, "Peso", "Progresso do Peso com Faixas de Referência IMC", "Peso (kg)", imc_ranges, ax)
                     st.pyplot(fig)
                     plt.close()
                     
                     st.markdown("""
-                    **Recomendações da OMS para IMC:**
-                    - Abaixo de 18.5: Magreza
-                    - 18.5 a 24.9: Peso normal
-                    - 25.0 a 29.9: Sobrepeso
-                    - 30.0 a 34.9: Obesidade grau I
-                    - 35.0 a 39.9: Obesidade grau II
-                    - 40.0 ou mais: Obesidade grau III
-                    """)
+                    <small>
+                    * As faixas coloridas representam as classificações de IMC da OMS:<br>
+                    - Amarelo claro: Magreza (IMC < 18,5) e Sobrepeso (IMC 25-29,9)<br>
+                    - Verde claro: Peso Normal (IMC 18,5-24,9)<br>
+                    - Vermelho claro: Obesidade (IMC ≥ 30)
+                    </small>
+                    """, unsafe_allow_html=True)
                 else:
                     st.warning("Não há dados de peso para exibir no gráfico")
             
@@ -222,7 +217,7 @@ elif menu == "Visualizar Aluno":
                     """, unsafe_allow_html=True)
                 else:
                     st.warning("Não há dados de Gordura Visceral para exibir no gráfico")
-
+            
             elif tab_selecionada == "Gordura Corporal":
                 dados_gordura_corporal = dados_aluno.dropna(subset=['Percentual_Gordura'])
                 if not dados_gordura_corporal.empty:
@@ -275,69 +270,55 @@ elif menu == "Visualizar Aluno":
 
     else:
         st.warning("Não há dados disponíveis para visualização.")
-            
-            elif tab_selecionada == "Massa Muscular":
+
+elif tab_selecionada == "Massa Muscular":
                 dados_massa_muscular = dados_aluno.dropna(subset=['Percentual_Massa_Magra'])
                 if not dados_massa_muscular.empty:
-                    fig_mm, ax_mm = plt.subplots(figsize=(10, 6))
-                    ax_mm.plot(dados_massa_muscular["Data"], dados_massa_muscular["Percentual_Massa_Magra"], marker="o", linewidth=2, color='#27AE60')
-                    ax_mm.set_title("Progresso da Massa Muscular", pad=20, fontsize=14)
-                    ax_mm.set_xlabel("Data", fontsize=12)
-                    ax_mm.set_ylabel("Percentual de Massa Muscular", fontsize=12)
-                    ax_mm.grid(True, alpha=0.3)
-                    plt.xticks(dados_massa_muscular["Data"], dados_massa_muscular["Data"].dt.strftime('%d/%m/%Y'), rotation=45)
-                    plt.tight_layout()
-                    st.pyplot(fig_mm)
-                    plt.close()
-                else:
-                    st.warning("Não há dados de Massa Muscular para exibir no gráfico")
-            
-            
-            elif tab_selecionada == "Gordura Corporal":
-                dados_gordura_corporal = dados_aluno.dropna(subset=['Percentual_Gordura'])
-                if not dados_gordura_corporal.empty:
                     fig, ax = plt.subplots(figsize=(10, 6))
                     sexo = dados_aluno['Sexo'].iloc[0]
                     if sexo == "Masculino":
-                        gc_ranges = [
-                            (0, 10, '#f8d7da', 'Muito Baixo'),
-                            (10, 20, '#d4edda', 'Normal'),
-                            (20, 25, '#fff3cd', 'Elevado'),
-                            (25, 100, '#f8d7da', 'Muito Elevado')
+                        mm_ranges = [
+                            (0, 33, '#f8d7da', 'Baixo'),
+                            (33, 39, '#fff3cd', 'Normal'),
+                            (39, 44, '#d4edda', 'Bom'),
+                            (44, 100, '#28a745', 'Excelente')
                         ]
-                    else:  # Feminino
-                        gc_ranges = [
-                            (0, 18, '#f8d7da', 'Muito Baixo'),
-                            (18, 28, '#d4edda', 'Normal'),
-                            (28, 35, '#fff3cd', 'Elevado'),
-                            (35, 100, '#f8d7da', 'Muito Elevado')
+                    else:
+                        mm_ranges = [
+                            (0, 24, '#f8d7da', 'Baixo'),
+                            (24, 30, '#fff3cd', 'Normal'),
+                            (30, 35, '#d4edda', 'Bom'),
+                            (35, 100, '#28a745', 'Excelente')
                         ]
-                    plot_metric_with_ranges(dados_gordura_corporal, "Percentual_Gordura", "Progresso da Gordura Corporal", "Percentual de Gordura Corporal (%)", gc_ranges, ax)
+                    plot_metric_with_ranges(dados_massa_muscular, "Percentual_Massa_Magra", "Progresso da Massa Muscular", "Percentual de Massa Muscular (%)", mm_ranges, ax)
                     st.pyplot(fig)
                     plt.close()
                     
                     if sexo == "Masculino":
                         st.markdown("""
                         <small>
-                        * Referências de Gordura Corporal para homens:<br>
-                        - Vermelho claro: Muito Baixo (< 10%) ou Muito Elevado (> 25%)<br>
-                        - Verde claro: Normal (10-20%)<br>
-                        - Amarelo claro: Elevado (20-25%)
+                        * Referências de Massa Muscular para homens:<br>
+                        - Vermelho claro: Baixo (< 33%)<br>
+                        - Amarelo: Normal (33-39%)<br>
+                        - Verde claro: Bom (39-44%)<br>
+                        - Verde escuro: Excelente (> 44%)
                         </small>
                         """, unsafe_allow_html=True)
                     else:
                         st.markdown("""
                         <small>
-                        * Referências de Gordura Corporal para mulheres:<br>
-                        - Vermelho claro: Muito Baixo (< 18%) ou Muito Elevado (> 35%)<br>
-                        - Verde claro: Normal (18-28%)<br>
-                        - Amarelo claro: Elevado (28-35%)
+                        * Referências de Massa Muscular para mulheres:<br>
+                        - Vermelho claro: Baixo (< 24%)<br>
+                        - Amarelo: Normal (24-30%)<br>
+                        - Verde claro: Bom (30-35%)<br>
+                        - Verde escuro: Excelente (> 35%)
                         </small>
                         """, unsafe_allow_html=True)
-                        
                 else:
-                    st.warning("Não há dados de Gordura Corporal para exibir no gráfico")
+                    st.warning("Não há dados de Massa Muscular para exibir no gráfico")
 
+    else:
+        st.warning("Não há dados disponíveis para visualização.")
     
 elif menu == "Dashboard":
     dados = load_data()

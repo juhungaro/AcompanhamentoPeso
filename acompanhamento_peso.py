@@ -289,7 +289,7 @@ elif menu == "Visualizar Aluno":
         else:
             st.warning("Não há dados de medidas suficientes para gerar os gráficos")
        
-            elif tab_selecionada == "Gordura Visceral":
+    elif tab_selecionada == "Gordura Visceral":
                 dados_gordura_visceral = dados_aluno.dropna(subset=['Gordura_Visceral'])
                 if not dados_gordura_visceral.empty:
                     fig_gv, ax_gv = plt.subplots(figsize=(10, 6))

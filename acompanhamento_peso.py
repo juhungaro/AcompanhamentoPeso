@@ -225,7 +225,7 @@ elif menu == "Visualizar Aluno":
                 else:
                     st.warning("Não há dados de Gordura Visceral para exibir no gráfico")
             
-                        elif tab_selecionada == "Gordura Corporal":
+            elif tab_selecionada == "Gordura Corporal":
                 dados_gordura_corporal = dados_aluno.dropna(subset=['Percentual_Gordura'])
                 if not dados_gordura_corporal.empty:
                     fig, ax = plt.subplots(figsize=(10, 6))

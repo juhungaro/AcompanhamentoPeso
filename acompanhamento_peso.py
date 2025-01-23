@@ -268,54 +268,54 @@ elif menu == "Visualizar Aluno":
                 else:
                     st.warning("Não há dados de Gordura Corporal para exibir no gráfico")
 
-    else:
-        st.warning("Não há dados disponíveis para visualização.")
-
-    elif tab_selecionada == "Massa Muscular":
-        dados_massa_muscular = dados_aluno.dropna(subset=['Percentual_Massa_Magra'])
-        if not dados_massa_muscular.empty:
-            fig, ax = plt.subplots(figsize=(10, 6))
-            sexo = dados_aluno['Sexo'].iloc[0]
-            if sexo == "Masculino":
-                mm_ranges = [
-                    (0, 33, '#f8d7da', 'Baixo'),
-                    (33, 39, '#fff3cd', 'Normal'),
-                    (39, 44, '#d4edda', 'Bom'),
-                    (44, 100, '#28a745', 'Excelente')
-                ]
-            else:
-                mm_ranges = [
-                    (0, 24, '#f8d7da', 'Baixo'),
-                    (24, 30, '#fff3cd', 'Normal'),
-                    (30, 35, '#d4edda', 'Bom'),
-                    (35, 100, '#28a745', 'Excelente')
-                ]
-            plot_metric_with_ranges(dados_massa_muscular, "Percentual_Massa_Magra", "Progresso da Massa Muscular", "Percentual de Massa Muscular (%)", mm_ranges, ax)
-            st.pyplot(fig)
-            plt.close()
-            
-            if sexo == "Masculino":
-                st.markdown("""
-                <small>
-                * Referências de Massa Muscular para homens:<br>
-                - Vermelho claro: Baixo (< 33%)<br>
-                - Amarelo: Normal (33-39%)<br>
-                - Verde claro: Bom (39-44%)<br>
-                - Verde escuro: Excelente (> 44%)
-                </small>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown("""
-                <small>
-                * Referências de Massa Muscular para mulheres:<br>
-                - Vermelho claro: Baixo (< 24%)<br>
-                - Amarelo: Normal (24-30%)<br>
-                - Verde claro: Bom (30-35%)<br>
-                - Verde escuro: Excelente (> 35%)
-                </small>
-                """, unsafe_allow_html=True)
         else:
-            st.warning("Não há dados de Massa Muscular para exibir no gráfico")
+            st.warning("Não há dados disponíveis para visualização.")
+
+        if tab_selecionada == "Massa Muscular":
+            dados_massa_muscular = dados_aluno.dropna(subset=['Percentual_Massa_Magra'])
+            if not dados_massa_muscular.empty:
+                fig, ax = plt.subplots(figsize=(10, 6))
+                sexo = dados_aluno['Sexo'].iloc[0]
+                if sexo == "Masculino":
+                    mm_ranges = [
+                        (0, 33, '#f8d7da', 'Baixo'),
+                        (33, 39, '#fff3cd', 'Normal'),
+                        (39, 44, '#d4edda', 'Bom'),
+                        (44, 100, '#28a745', 'Excelente')
+                    ]
+                else:
+                    mm_ranges = [
+                        (0, 24, '#f8d7da', 'Baixo'),
+                        (24, 30, '#fff3cd', 'Normal'),
+                        (30, 35, '#d4edda', 'Bom'),
+                        (35, 100, '#28a745', 'Excelente')
+                    ]
+                plot_metric_with_ranges(dados_massa_muscular, "Percentual_Massa_Magra", "Progresso da Massa Muscular", "Percentual de Massa Muscular (%)", mm_ranges, ax)
+                st.pyplot(fig)
+                plt.close()
+                
+                if sexo == "Masculino":
+                    st.markdown("""
+                    <small>
+                    * Referências de Massa Muscular para homens:<br>
+                    - Vermelho claro: Baixo (< 33%)<br>
+                    - Amarelo: Normal (33-39%)<br>
+                    - Verde claro: Bom (39-44%)<br>
+                    - Verde escuro: Excelente (> 44%)
+                    </small>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.markdown("""
+                    <small>
+                    * Referências de Massa Muscular para mulheres:<br>
+                    - Vermelho claro: Baixo (< 24%)<br>
+                    - Amarelo: Normal (24-30%)<br>
+                    - Verde claro: Bom (30-35%)<br>
+                    - Verde escuro: Excelente (> 35%)
+                    </small>
+                    """, unsafe_allow_html=True)
+            else:
+                st.warning("Não há dados de Massa Muscular para exibir no gráfico")
 
 elif menu == "Dashboard":
     dados = load_data()

@@ -319,7 +319,6 @@ elif tab_selecionada == "Massa Muscular":
 
     else:
         st.warning("Não há dados disponíveis para visualização.")
-    
 elif menu == "Dashboard":
     dados = load_data()
     criar_dashboard(dados)                                

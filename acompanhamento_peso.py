@@ -109,7 +109,7 @@ st.title("Monitoramento de Peso e Medidas")
 st.markdown("### Acompanhe o progresso físico com base em dados de peso e parâmetros da OMS")
 
 # Menu lateral
-menu = st.sidebar.selectbox("Escolha uma opção", ["Inserir Dados", "Visualizar Aluno", "Remover Aluno"])
+menu = st.sidebar.selectbox("Escolha uma opção", ["Inserir Dados", "Visualizar Aluno"])
 
 if menu == "Inserir Dados":
     st.sidebar.header("Inserir dados do aluno")
@@ -144,31 +144,20 @@ if menu == "Inserir Dados":
 elif menu == "Visualizar Aluno":
     dados = load_data()
     if not dados.empty:
-        alunos = dados["Nome"].unique()
-        aluno_selecionado = st.selectbox("Selecione um aluno", alunos)
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            alunos = dados["Nome"].unique()
+            aluno_selecionado = st.selectbox("Selecione um aluno", alunos)
+        with col2:
+            if st.button("Remover Aluno"):
+                if remover_aluno(aluno_selecionado):
+                    st.success(f"Aluno {aluno_selecionado} removido com sucesso!")
+                    st.experimental_rerun()
+                else:
+                    st.error("Não foi possível remover o aluno. Por favor, tente novamente.")
         
         if aluno_selecionado:
             dados_aluno = dados[dados["Nome"] == aluno_selecionado].sort_values("Data")
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                peso_atual = dados_aluno['Peso'].iloc[-1] if not dados_aluno.empty else None
-                st.metric("Peso Atual", f"{peso_atual:.1f} kg" if peso_atual is not None else "N/A")
-            with col2:
-                imc_atual = dados_aluno['IMC'].iloc[-1] if not dados_aluno.empty else None
-                st.metric("IMC Atual", f"{imc_atual:.1f}" if imc_atual is not None else "N/A")
-            
-            st.subheader("Análise do IMC")
-            if imc_atual is not None:
-                classificacao, nivel = get_imc_classification(imc_atual)
-                if nivel == "success":
-                    st.success(f"IMC: {imc_atual:.1f} - Classificação: {classificacao}")
-                elif nivel == "warning":
-                    st.warning(f"IMC: {imc_atual:.1f} - Classificação: {classificacao}")
-                else:
-                    st.error(f"IMC: {imc_atual:.1f} - Classificação: {classificacao}")
-            else:
-                st.info("Dados de IMC não disponíveis")
             
             tab_selecionada = st.radio(
                 "Selecione o gráfico:",
@@ -321,7 +310,7 @@ elif menu == "Visualizar Aluno":
                 else:
                     st.warning("Não há dados de Massa Muscular para exibir no gráfico")
 
-        else:
-            st.warning("Não há dados disponíveis para visualização.")
+    else:
+        st.warning("Não há dados disponíveis para visualização.")
 
-            
+           

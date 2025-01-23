@@ -19,42 +19,58 @@ Um aplicativo web para monitoramento de progresso físico de alunos/clientes, de
 - Pandas
 - Matplotlib
 
-**🔧 Instalação**
+**🔧 Instalaçãoe Execução**
 
-Clone o repositório:
-git clone https://github.com/
 
-Entre no diretório do projeto:
-cd monitoramento-fisico
+1. Clone o repositório:
+   ```bash
+   git clone (https://github.com/juhungaro/AcompanhamentoPeso.git)
 
-Instale as dependências:
-pip install -r requirements.txt
+2. Navegue até o diretório do projeto:
+   ```bash
+   cd monitoramento-fisico
 
-🖥️ Como usar
+3. Instale as dependências:
+   ```bash
+   pip install -r requirements.txt
+
+
+**🖥️ Como usar**
+
 Execute o aplicativo Streamlit:
-streamlit run app.py
 
-Abra o navegador e acesse o endereço local fornecido pelo Streamlit (geralmente http://localhost:8501)
+Abra o navegador e acesse o endereço local fornecido pelo Streamlit (https://acompanhamentopeso.streamlit.app/)
+
 Use o menu lateral para navegar entre as opções:
 "Inserir Dados": Adicione novos dados de alunos/clientes
 "Visualizar Aluno": Veja o progresso individual e gráficos
-📊 Estrutura de Dados
+
+
+**📊 Estrutura de Dados**
+
 O aplicativo utiliza um arquivo CSV (dados_alunos.csv) para armazenar os dados. A estrutura do CSV é a seguinte:
 
 Nome,Sexo,Data,Altura,Peso,IMC,PercentualGordura,PercentualMassaMagra,GorduraVisceral
 
-🤝 Contribuindo
-Contribuições são muito bem-vindas! Siga estes passos:
+**Limitações**
 
-Faça um fork do projeto
-Crie sua feature branch (git checkout -b feature/AmazingFeature)
-Commit suas mudanças (git commit -m 'Add some AmazingFeature')
-Push para a branch (git push origin feature/AmazingFeature)
-Abra um Pull Request
-📝 Licença
-Este projeto está licenciado sob a Licença MIT - veja o arquivo LICENSE.md para detalhes.
+inserir
 
-📞 Contato
-Seu Nome - @seu_twitter - email@example.com
+**🤝 Contribuições**
 
-Link do Projeto: https://github.com/seu-usuario/monitoramento-fisico
+Contribuições são bem-vindas! Sinta-se à vontade para abrir uma issue ou enviar um pull request.
+
+**📝 Licença**
+
+Este projeto está licenciado sob a MIT License.
+
+**Aviso**
+
+Esta aplicativo é apenas para fins informativos. Sempre consulte um profissional de saúde para obter informações específicas sobre a sua saúde
+
+**📞 Contato**
+Juliana Hungaro - juhungaro@gmail.com
+
+
+
+
